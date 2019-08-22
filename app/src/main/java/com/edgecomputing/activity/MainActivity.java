@@ -174,7 +174,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginRequest();
+                //loginRequest();
+              startActivity(new Intent(MainActivity.this,EscortMapActivity.class));
             }
         });
 

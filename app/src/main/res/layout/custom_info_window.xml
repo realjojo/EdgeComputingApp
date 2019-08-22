@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="90dp"
+    android:layout_height="100dp"
+    android:background="@drawable/custom_info_bubble">
+        <ImageView
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:id="@+id/escort_image"
+            android:src="@drawable/escort_dog"
+            android:layout_height="40dp"
+            android:layout_width="40dp" />
+        <TextView
+            android:text="犯人信息"
+            android:layout_toRightOf="@+id/escort_image"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:layout_below="@+id/escort_image"
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:textColor="#ff000000"
+            android:textSize="14dp"
+            android:textStyle="bold" />
+
+</RelativeLayout>

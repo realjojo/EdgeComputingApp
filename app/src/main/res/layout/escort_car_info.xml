@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimary"
+   >
+    <TextView
+        android:id="@+id/title0"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:paddingLeft="20dp"
+        android:layout_alignParentTop="true"
+        android:textColor="#fff"
+        android:textSize="20sp"
+        android:text="押解车辆"
+        android:background="@color/colorPrimaryDark"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"/>
+    <ImageView
+        android:id="@+id/car_image"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/title0"
+        android:src="@drawable/tmpcar"
+        android:scaleType="centerCrop"
+        android:layout_width="180dp"
+        android:layout_height="180dp" />
+    <TextView
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:gravity="center"
+        android:text="车牌号：京2333333"
+        android:layout_alignLeft="@+id/car_image"
+        android:layout_alignRight="@+id/car_image"
+        android:textColor="#fff"
+        android:textSize="20sp"
+        android:layout_below="@+id/car_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/car_image"
+        android:layout_toRightOf="@+id/car_image">
+        <TextView
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:textSize="20sp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="姓名：李警官"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:textSize="20sp"
+            android:paddingTop="5dp"
+            android:paddingBottom="10dp"
+            android:text="编号：9567"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/hujiaotv"
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:textSize="20sp"
+            android:paddingTop="9dp"
+            android:paddingBottom="10dp"
+            android:text="呼号：110"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Button
+            android:layout_marginLeft="10dp"
+            android:background="@color/colorPrimaryDark"
+            android:layout_toRightOf="@+id/hujiaotv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#fff"
+            android:textSize="15sp"
+            android:text="呼叫"/>
+        </RelativeLayout>
+        <TextView
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:textSize="20sp"
+            android:paddingTop="5dp"
+            android:paddingBottom="10dp"
+            android:text="手机：15611692200"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:paddingLeft="20dp"
+            android:textColor="#fff"
+            android:textSize="20sp"
+            android:paddingTop="5dp"
+            android:paddingBottom="10dp"
+            android:text="位置：北京邮电大学"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+
+
+
+    </LinearLayout>
+</RelativeLayout>

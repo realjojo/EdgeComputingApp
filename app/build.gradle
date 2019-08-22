@@ -20,6 +20,13 @@ android {
         sourceCompatibility 1.8
         targetCompatibility 1.8
     }
+    /**new add*/
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    /**new add*/
 }
 
 dependencies {
