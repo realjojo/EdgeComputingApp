@@ -1,14 +1,29 @@
 apply plugin: 'com.android.application'
+// 应用插件
+apply plugin: 'com.chaquo.python'
 
 android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.edgecomputing"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        python {
+//            buildPython "D:/Anaconda3-5.1.0/python.exe"
+            pip {
+                install "numpy"
+//                install "lightgbm"
+                install "scikit-learn"
+            }
+        }
+        // 指定abi，如需在模拟器调试，增加"x86"，否则指定"armeabi-v7a"即可
+        ndk {
+            abiFilters "armeabi-v7a", "x86"
+        }
     }
     buildTypes {
         release {

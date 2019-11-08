@@ -1,14 +1,16 @@
 package com.edgecomputing.utils;
 
+import android.app.Application;
 import android.content.Context;
 import android.util.Log;
+
+import com.edgecomputing.application.MainApplication;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+import java.util.HashMap;
 
 /**
  * @Author: jojo
@@ -18,10 +20,12 @@ public class AndroidWebSocketClient extends WebSocketClient {
 
     private Context context;
 
-    private static final String url = "ws://10.0.3.2:8089/ws/webSocket/2";
+    private static final String url = "ws://10.108.120.33:8080/ws/webSocket/2";
 
     //由于WebSocketClient对象是不能重复使用的，所以将AndroidWebSocketClient写为单例模式
     private static AndroidWebSocketClient mInstance;
+//    private MainApplication mainApplication;
+    private static final String TAG = "WebSocket";
 
     /**
      * 私有构造方法
@@ -31,6 +35,7 @@ public class AndroidWebSocketClient extends WebSocketClient {
         //开启webSocket客户端
         super(URI.create(url));
         this.context = context;
+//        mainApplication = application;
     }
 
     /**
@@ -62,6 +67,20 @@ public class AndroidWebSocketClient extends WebSocketClient {
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         Log.i("WebSocket", "WebSocket长链接打开 onOpen");
+//        HashMap<String, String> pp = new HashMap<>();
+//        pp.put("deviceNo", mainApplication.getDeviceNo());
+//        OkHttpUtil.getInstance(context).requestAsyn("dvcM/devices/login", OkHttpUtil.TYPE_PUT, pp, new OkHttpUtil.ReqCallBack<String>(){
+//
+//            @Override
+//            public void onReqSuccess(String result) {
+//                Log.i(TAG, "设备接入WebSocket连接");
+//            }
+//
+//            @Override
+//            public void onReqFailed(String errorMsg) {
+//                Log.e(TAG, errorMsg);
+//            }
+//        });
     }
 
     /**
@@ -82,6 +101,21 @@ public class AndroidWebSocketClient extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         Log.i("WebSocket", "WebSocket长链接关闭 onClose");
+        Log.e("WebSocket onClose", reason);
+//        HashMap<String, String> pp = new HashMap<>();
+//        pp.put("deviceNo", mainApplication.getDeviceNo());
+//        OkHttpUtil.getInstance(context).requestAsyn("dvcM/devices/logout", OkHttpUtil.TYPE_PUT, pp, new OkHttpUtil.ReqCallBack<String>(){
+//
+//            @Override
+//            public void onReqSuccess(String result) {
+//                Log.i(TAG, "设备断开WebSocket连接");
+//            }
+//
+//            @Override
+//            public void onReqFailed(String errorMsg) {
+//                Log.e(TAG, errorMsg);
+//            }
+//        });
     }
 
     /**

@@ -10,5 +10,6 @@
     <color name="divideLine">#A9A9A9</color>
     <color name="textColorBlue">#1296db</color>
     <color name="colorLoginButton">#004684</color>
-    <color name="textColorBlack">#2C2C2C</color>
+    <color name="textColorGray">#2C2C2C</color>
+    <color name="textColorBlack">#000000</color>
 </resources>

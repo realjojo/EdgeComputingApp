@@ -119,6 +119,7 @@
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
             android:gravity="center_vertical"
+            android:hint="  设备编号"
             android:textColor="@color/textColorBlack"
             android:layout_toRightOf="@id/view_device_no" />
 
@@ -187,28 +188,28 @@
 
     </RelativeLayout>
 
-    <CheckBox
-        android:id="@+id/cb_device_login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/rl_device_user"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:background="@null"
-        android:checked="true"
-        android:duplicateParentState="true"
-        android:text="注册后自动接入系统"
-        android:textColor="#666666"
-        android:textSize="15sp"
-        app:buttonTint="@color/colorLoginButton" />
+    <!--<CheckBox-->
+        <!--android:id="@+id/cb_device_login"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@id/rl_device_user"-->
+        <!--android:layout_centerHorizontal="true"-->
+        <!--android:layout_marginTop="20dp"-->
+        <!--android:background="@null"-->
+        <!--android:checked="true"-->
+        <!--android:duplicateParentState="true"-->
+        <!--android:text="注册后自动接入系统"-->
+        <!--android:textColor="#666666"-->
+        <!--android:textSize="15sp"-->
+        <!--app:buttonTint="@color/colorLoginButton" />-->
 
     <Button
         android:id="@+id/btn_reg2server"
         android:layout_width="340dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/cb_device_login"
+        android:layout_below="@id/rl_device_user"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="40dp"
         android:background="@drawable/round_corner_bg"
         android:gravity="center"
         android:padding="10dp"

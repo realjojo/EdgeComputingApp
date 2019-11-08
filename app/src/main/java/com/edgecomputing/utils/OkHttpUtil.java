@@ -31,7 +31,8 @@ public class OkHttpUtil {
     /**
      * 请求接口根地址
      */
-    private static final String SERVER_URL = "http://10.0.3.2:8089";
+//    private static final String SERVER_URL = "http://10.0.3.2:8089";
+    private static final String SERVER_URL = "http://10.108.120.33:8089";
     /**
      * 单例引用
      */
@@ -45,7 +46,8 @@ public class OkHttpUtil {
      * post请求参数为表单
      */
     public static final int TYPE_POST_FORM = 2;
-    public static final int TYPE_DEL = 3;
+    public static final int TYPE_PUT = 3;
+    public static final int TYPE_DEL = 4;
     private OkHttpClient mOkHttpClient;
     /**
     全局处理子线程和M主线程通信
@@ -234,6 +236,9 @@ public class OkHttpUtil {
             case TYPE_POST_FORM:
                 call = requestPostByAsynWithForm(actionUrl, paramsMap, callBack);
                 break;
+            case TYPE_PUT:
+                call = requestPutByAsyn(actionUrl, paramsMap, callBack);
+                break;
             case TYPE_DEL:
                 call = requestDelByAsyn(actionUrl, paramsMap, callBack);
                 break;
@@ -359,6 +364,49 @@ public class OkHttpUtil {
             RequestBody formBody = builder.build();
             String requestUrl = String.format("%s/%s", SERVER_URL, actionUrl);
             final Request request = addHeaders().url(requestUrl).post(formBody).build();
+            final Call call = mOkHttpClient.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    failedCallBack("访问失败", callBack);
+                    Log.e(TAG, e.toString());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        String string = response.body().string();
+                        Log.i(TAG, "response ----->" + string);
+                        successCallBack((T) string, callBack);
+                    } else {
+                        failedCallBack(response.body().string(), callBack);
+                    }
+                }
+            });
+            return call;
+        } catch (Exception e) {
+            Log.e(TAG, e.toString());
+        }
+        return null;
+    }
+
+    /**
+     * okHttp put异步请求
+     * @param actionUrl 接口地址
+     * @param paramsMap 请求参数
+     * @param callBack  请求返回数据回调
+     * @param <T>       数据泛型
+     * @return
+     */
+    private <T> Call requestPutByAsyn(String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
+        try {
+            FormBody.Builder builder = new FormBody.Builder();
+            for (String key : paramsMap.keySet()) {
+                builder.add(key, paramsMap.get(key));
+            }
+            RequestBody formBody = builder.build();
+            String requestUrl = String.format("%s/%s", SERVER_URL, actionUrl);
+            final Request request = addHeaders().url(requestUrl).put(formBody).build();
             final Call call = mOkHttpClient.newCall(request);
             call.enqueue(new Callback() {
                 @Override

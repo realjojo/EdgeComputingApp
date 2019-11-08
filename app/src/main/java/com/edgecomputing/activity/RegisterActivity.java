@@ -27,8 +27,8 @@ import java.util.HashMap;
 public class RegisterActivity extends AppCompatActivity {
 
     private Button registerBtn;
-    private EditText userNameEt, pwdEt, confirmPwdEt;
-    private ImageView userNameClear, pwdClear, confirmPwdClear;
+    private EditText userNameEt, pwdEt, confirmPwdEt, userIdEt, userIdCardEt;
+    private ImageView userNameClear, pwdClear, confirmPwdClear, userIdClear, userIdCardClear;
     private static final String TAG = "RegisterActivity";
 
     @Override
@@ -51,27 +51,37 @@ public class RegisterActivity extends AppCompatActivity {
         userNameClear = (ImageView) findViewById(R.id.iv_unameClear1);
         pwdClear = (ImageView) findViewById(R.id.iv_pwdClear1);
         confirmPwdClear = (ImageView) findViewById(R.id.iv_confirmPwdClear1);
+        userIdEt = (EditText) findViewById(R.id.et_userId);
+        userIdClear = (ImageView) findViewById(R.id.iv_idClear1);
+        userIdCardEt = (EditText) findViewById(R.id.et_userIdCard);
+        userIdCardClear = (ImageView) findViewById(R.id.iv_idCardClear1);
 
         EditTextClearTool.addClearListener(userNameEt,userNameClear);
         EditTextClearTool.addClearListener(pwdEt,pwdClear);
         EditTextClearTool.addClearListener(confirmPwdEt, confirmPwdClear);
+        EditTextClearTool.addClearListener(userIdEt, userIdClear);
+        EditTextClearTool.addClearListener(userIdCardEt, userIdCardClear);
 
         registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                HashMap<String, String> params = new HashMap<>();
+                HashMap<String, String> params = new HashMap<>(5);
                 params.put("userName", userNameEt.getText().toString());
+                params.put("userId", userIdEt.getText().toString());
+                params.put("userIdCard", userIdCardEt.getText().toString());
                 params.put("password", pwdEt.getText().toString());
                 params.put("confirmPwd", confirmPwdEt.getText().toString());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("usrM/users/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
                         if(JSON.parseObject(result).getInteger("code") == 200) {
                             JSONObject jsonObj = JSON.parseObject(result).getJSONObject("data");
                             String userName = jsonObj.getString("userName");
                             String password = jsonObj.getString("password");
+                            String userId = jsonObj.getString("userId");
+                            String idCard = jsonObj.getString("idCard");
                             MainApplication mainApplication = (MainApplication) getApplication();
-                            mainApplication.setLoginUserInfo(userName, "");
+                            mainApplication.setLoginUserInfo(userName, "", "", userId, idCard);
                             Intent intent = new Intent();
                             intent.setClass(RegisterActivity.this, MainActivity.class);
                             intent.putExtra("userName", userName);

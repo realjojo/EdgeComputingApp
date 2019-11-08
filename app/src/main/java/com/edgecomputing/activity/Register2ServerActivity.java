@@ -64,22 +64,22 @@ public class Register2ServerActivity extends AppCompatActivity {
         regBtn = (Button) findViewById(R.id.btn_reg2server);
         deviceUserEt = (EditText) findViewById(R.id.et_device_user);
         deviceUserClear = (ImageView) findViewById(R.id.iv_device_user_Clear);
-        checkBox = (CheckBox) findViewById(R.id.cb_device_login);
+//        checkBox = (CheckBox) findViewById(R.id.cb_device_login);
 
         deviceType = deviceTypeTv.getText().toString();
 
         EditTextClearTool.addClearListener(deviceUserEt, deviceUserClear);
 
-        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (checkBox.isChecked()) {
-                    check = "true";
-                } else {
-                    check = "false";
-                }
-            }
-        });
+//        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (checkBox.isChecked()) {
+//                    check = "true";
+//                } else {
+//                    check = "false";
+//                }
+//            }
+//        });
 
         regBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,16 +93,14 @@ public class Register2ServerActivity extends AppCompatActivity {
                     params.put("deviceNo", deviceNo);
                     params.put("userName", deviceUserEt.getText().toString());
                     params.put("deviceStatus", check);
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("dvcM/devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             Integer code = JSON.parseObject(result).getInteger("code");
                             if (code == 200) {
                                 MainApplication mainApplication = (MainApplication) getApplication();
                                 mainApplication.setReg2Server(true);
-                                Intent intent = new Intent();
-                                intent.setClass(Register2ServerActivity.this, MainActivity.class);
-                                setResult(2, intent);
+                                setResult(2);
                                 finish();
                             } else {
                                 Toast.makeText(getBaseContext(), JSON.parseObject(result).getString("message"), Toast.LENGTH_SHORT).show();
@@ -118,17 +116,19 @@ public class Register2ServerActivity extends AppCompatActivity {
             }
         });
 
-        tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(Register2ServerActivity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
-            } else {
-                deviceNo = tm.getDeviceId();
-                if (deviceNo != null) {
-                    String dn = deviceNo.substring(0, 4) + "*******" + deviceNo.substring(10, 14);
-                    deviceNoTv.setText(dn);
+        deviceNo = mainApplication.getDeviceNo();
+        if(deviceNo == null){
+            tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(Register2ServerActivity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+                } else {
+                    deviceNo = tm.getDeviceId();
                 }
             }
+        }else {
+            String dn = deviceNo.substring(0, 4) + "*******" + deviceNo.substring(10, 14);
+            deviceNoTv.setText(dn);
         }
     }
 
@@ -152,16 +152,4 @@ public class Register2ServerActivity extends AppCompatActivity {
             }
         }
     }
-
-    @Override
-    public void onBackPressed() {
-        Log.i(TAG, "onBackPressed(Reg2ServerActivity)");
-        if(mainApplication.isReg2Server()) {
-            setResult(2);
-        } else {
-            setResult(3);
-        }
-        finish();
-    }
-
 }

@@ -11,11 +11,15 @@ import android.content.SharedPreferences;
 public class MainApplication extends Application {
 
     private String userName;
+    private String userId;
+    private String idCard;
     private String password;
     private String token;
+    private String prisonerId;
     private boolean isLogin;
     private boolean isRememberPwd;
     private boolean isReg2Server;
+    private String deviceNo;
 
     private SharedPreferences sharedPreferences;
 
@@ -96,12 +100,62 @@ public class MainApplication extends Application {
         return sharedPreferences.getBoolean("isRememberPwd", false);
     }
 
-    public void setLoginUserInfo(String userName, String token) {
+    public void setLoginUserInfo(String userName, String token, String prisonerId, String userId, String idCard) {
         this.userName = userName;
+        this.prisonerId = prisonerId;
         this.token = token;
+        this.userId = userId;
+        this.idCard = idCard;
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("userName", userName);
+        editor.putString("userId", userId);
+        editor.putString("idCard", idCard);
+        editor.putString("prisonerId", prisonerId);
         editor.putString("token", token);
+        editor.commit();
+    }
+
+    public String getPrisonerId() {
+        return sharedPreferences.getString("prisonerId", null);
+    }
+
+    public void setPrisonerId(String prisonerId) {
+        this.prisonerId = prisonerId;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("prisonerId", prisonerId);
+        editor.commit();
+    }
+
+    public String getDeviceNo() {
+        return sharedPreferences.getString("deviceNo", null);
+    }
+
+    public void setDeviceNo(String deviceNo) {
+        this.deviceNo = deviceNo;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("deviceNo", deviceNo);
+        editor.commit();
+    }
+
+    public String getUserId() {
+        return sharedPreferences.getString("userId", null);
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("userId", userId);
+        editor.commit();
+    }
+
+    public String getIdCard() {
+        return sharedPreferences.getString("idCard", null);
+    }
+
+    public void setIdCard(String idCard) {
+        this.idCard = idCard;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("idCard", idCard);
         editor.commit();
     }
 }

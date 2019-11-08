@@ -63,7 +63,7 @@ public class MemoryMonitor {
         long totalMemorySize = getTotalMemory();
         long availableSize = getAvailableMemory(context) / 1024;
         int memoryRate = (int) ((totalMemorySize - availableSize) / (float) totalMemorySize * 100);
-        return memoryRate + "%";
+        return memoryRate + "";
     }
 
 }
