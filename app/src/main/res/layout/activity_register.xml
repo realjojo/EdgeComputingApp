@@ -62,7 +62,7 @@
             android:layout_toRightOf="@id/viewId"
             android:background="@null"
             android:ems="19"
-            android:hint="  民警编号"
+            android:hint=" 民警编号"
             android:textColorHint="@color/colorCursor"
             android:textCursorDrawable="@drawable/color_cursor"
             android:textSize="15sp" />
@@ -114,7 +114,7 @@
             android:layout_toRightOf="@id/viewName"
             android:background="@null"
             android:ems="19"
-            android:hint="  用户名"
+            android:hint=" 用户名"
             android:textColorHint="@color/colorCursor"
             android:textCursorDrawable="@drawable/color_cursor"
             android:textSize="15sp" />
@@ -166,7 +166,7 @@
             android:layout_toRightOf="@id/viewIdCard"
             android:background="@null"
             android:ems="19"
-            android:hint="  身份证号"
+            android:hint=" 身份证号"
             android:textColorHint="@color/colorCursor"
             android:textCursorDrawable="@drawable/color_cursor"
             android:textSize="15sp" />

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_login"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -62,7 +63,7 @@
             android:layout_toRightOf="@id/viewName"
             android:background="@null"
             android:ems="19"
-            android:hint="  用户名"
+            android:hint=" 用户名"
             android:textColorHint="@color/colorCursor"
             android:textCursorDrawable="@drawable/color_cursor"
             android:textSize="15sp" />
@@ -116,7 +117,7 @@
             android:background="@null"
             android:drawablePadding="5dp"
             android:ems="19"
-            android:hint="  犯人ID"
+            android:hint=" 犯人ID"
             android:textColorHint="@color/colorCursor"
             android:textCursorDrawable="@drawable/color_cursor"
             android:textSize="15sp" />
@@ -170,7 +171,7 @@
             android:background="@null"
             android:drawablePadding="5dp"
             android:ems="19"
-            android:hint="  密码"
+            android:hint=" 密码"
             android:inputType="textPassword"
             android:textColorHint="@color/colorCursor"
             android:textCursorDrawable="@drawable/color_cursor"

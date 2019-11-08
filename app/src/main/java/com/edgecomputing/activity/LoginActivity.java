@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText userNameEt, pwdEt, prisonerIdEt;
     private ImageView userNameClear, pwdClear, idClear;
     private CheckBox rememberPwd;
-    private boolean isRememberPwd = false;
+    private boolean isRememberPwd;
     private MainApplication mainApplication;
     private String deviceNo;
     private TelephonyManager tm;
@@ -82,6 +82,7 @@ public class LoginActivity extends AppCompatActivity {
             prisonerIdEt.setText(mainApplication.getPrisonerId());
             if(mainApplication.isRememberPwd()) {
                 rememberPwd.setChecked(true);
+                isRememberPwd = true;
                 pwdEt.setText(mainApplication.getPassword());
             }
         }
@@ -228,7 +229,12 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Log.i(TAG, "onBackPressed(LoginActivity)");
-        setResult(3);
-        finish();
+        if(logout) {
+            setResult(4);
+            finish();
+        }else {
+            setResult(3);
+            finish();
+        }
     }
 }

@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean stopRunnable = false;
     private WarnDialog warnDialog;
     private MainApplication mainApplication;
+    private boolean back = true;
     private static final String TAG = "MainActivity";
 
     Handler handler = new Handler();
@@ -783,6 +784,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             handler.postDelayed(runnable, 5000);
         }else if(resultCode == 3) {
             finish();
+        }else if(resultCode == 4) {
+            back = false;
+            finish();
         }
     }
 
@@ -796,9 +800,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy(MainActivity)");
-        Log.i(TAG, STATUS+"=========");
         if(STATUS){
-            if(receiver != null) {
+            if(receiver != null && back) {
                 unregisterReceiver(receiver);
             }
             for (int i = 0; i < smoothMarkerList.size(); i++){

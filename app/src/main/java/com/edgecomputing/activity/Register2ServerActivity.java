@@ -40,7 +40,7 @@ public class Register2ServerActivity extends AppCompatActivity {
     private ImageView deviceUserClear;
     private CheckBox checkBox;
     private TelephonyManager tm;
-    private String deviceType, deviceNo, check = "true";
+    private String deviceType, deviceNo;
 
     private MainApplication mainApplication;
     private static final String TAG = "Register2ServerActivity";
@@ -84,15 +84,13 @@ public class Register2ServerActivity extends AppCompatActivity {
         regBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, check);
                 if (deviceNo == null) {
                     Toast.makeText(getBaseContext(), "获取权限失败，无法注册设备", Toast.LENGTH_SHORT).show();
                 } else {
                     HashMap<String, String> params = new HashMap<>();
                     params.put("deviceType", deviceType);
                     params.put("deviceNo", deviceNo);
-                    params.put("userName", deviceUserEt.getText().toString());
-                    params.put("deviceStatus", check);
+                    params.put("userId", deviceUserEt.getText().toString());
                     OkHttpUtil.getInstance(getBaseContext()).requestAsyn("dvcM/devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
