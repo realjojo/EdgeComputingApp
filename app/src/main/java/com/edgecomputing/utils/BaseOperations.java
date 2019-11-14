@@ -213,6 +213,24 @@ public class BaseOperations {
         return String.valueOf(Float.intBitsToFloat(res));
     }
 
+    // 从byte数组的index处的连续4个字节获得一个float
+    public static float getFloat(byte[] arr, int index) {
+        byte[] bytes = new byte[4];
+        bytes[0] = 0x00;
+        bytes[1] = arr[index];
+        bytes[2] = arr[index+1];
+        bytes[3] = arr[index+2];
+        return Float.intBitsToFloat(getInt(bytes));
+    }
+
+    // 从byte数组的index处的连续4个字节获得一个int
+    public static int getInt(byte[] arr) {
+        return 	(0xff000000 	& (arr[0] << 24))  |
+                (0x00ff0000 	& (arr[1] << 16))  |
+                (0x0000ff00 	& (arr[2] << 8))   |
+                (0x000000ff 	&  arr[3]);
+    }
+
     /**
      * 16进制字符串转十进制int
      * @param HexString

@@ -49,9 +49,9 @@
         <activity android:name=".activity.RegisterActivity" />
         <activity android:name=".activity.Register2ServerActivity" />
         <activity android:name=".activity.LoginActivity" />
-        <activity android:name=".activity.BlueToothActivity" />
         <activity android:name=".activity.DeviceListActivity" />
         <service android:name=".utils.UartService" />
+        <activity android:name=".activity.MapActivity" />
     </application>
 
 </manifest>

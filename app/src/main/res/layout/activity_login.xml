@@ -80,65 +80,65 @@
 
     </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/rl_prisonerId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/rl_userName"
-        android:layout_marginTop="1dp"
-        android:background="@drawable/rectangle_edittext">
+<!--    <RelativeLayout-->
+<!--        android:id="@+id/rl_prisonerId"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_below="@id/rl_userName"-->
+<!--        android:layout_marginTop="1dp"-->
+<!--        android:background="@drawable/rectangle_edittext">-->
 
-        <ImageView
-            android:id="@+id/iv_prisonerId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:paddingBottom="15dp"
-            android:paddingLeft="30dp"
-            android:paddingTop="15dp"
-            android:src="@mipmap/ic_prisoner_id" />
+<!--        <ImageView-->
+<!--            android:id="@+id/iv_prisonerId"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:paddingBottom="15dp"-->
+<!--            android:paddingLeft="30dp"-->
+<!--            android:paddingTop="15dp"-->
+<!--            android:src="@mipmap/ic_prisoner_id" />-->
 
-        <View
-            android:id="@+id/viewId"
-            android:layout_width="1dip"
-            android:layout_height="20dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:layout_toRightOf="@id/iv_prisonerId"
-            android:background="@color/colorCursor" />
+<!--        <View-->
+<!--            android:id="@+id/viewId"-->
+<!--            android:layout_width="1dip"-->
+<!--            android:layout_height="20dp"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:layout_marginLeft="10dp"-->
+<!--            android:layout_toRightOf="@id/iv_prisonerId"-->
+<!--            android:background="@color/colorCursor" />-->
 
-        <EditText
-            android:id="@+id/et_prisonerId"
-            android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:layout_toRightOf="@id/viewId"
-            android:background="@null"
-            android:drawablePadding="5dp"
-            android:ems="19"
-            android:hint=" 犯人ID"
-            android:textColorHint="@color/colorCursor"
-            android:textCursorDrawable="@drawable/color_cursor"
-            android:textSize="15sp" />
+<!--        <EditText-->
+<!--            android:id="@+id/et_prisonerId"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="30dp"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:layout_marginLeft="10dp"-->
+<!--            android:layout_toRightOf="@id/viewId"-->
+<!--            android:background="@null"-->
+<!--            android:drawablePadding="5dp"-->
+<!--            android:ems="19"-->
+<!--            android:hint=" 犯人ID"-->
+<!--            android:textColorHint="@color/colorCursor"-->
+<!--            android:textCursorDrawable="@drawable/color_cursor"-->
+<!--            android:textSize="15sp" />-->
 
-        <ImageView
-            android:id="@+id/iv_idClear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="20dp"
-            android:src="@mipmap/ic_backspace_grey600_24dp"
-            android:visibility="invisible" />
+<!--        <ImageView-->
+<!--            android:id="@+id/iv_idClear"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_alignParentRight="true"-->
+<!--            android:layout_centerVertical="true"-->
+<!--            android:layout_marginRight="20dp"-->
+<!--            android:src="@mipmap/ic_backspace_grey600_24dp"-->
+<!--            android:visibility="invisible" />-->
 
-    </RelativeLayout>
+<!--    </RelativeLayout>-->
 
     <RelativeLayout
         android:id="@+id/rl_userPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/rl_prisonerId"
+        android:layout_below="@id/rl_userName"
         android:layout_marginTop="1dp"
         android:background="@drawable/rectangle_edittext">
 

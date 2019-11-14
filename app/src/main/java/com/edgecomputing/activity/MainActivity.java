@@ -1,21 +1,25 @@
 package com.edgecomputing.activity;
 
-import android.app.ProgressDialog;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
+import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.util.Pair;
+import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -25,48 +29,28 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amap.api.maps.AMap;
-import com.amap.api.maps.CameraUpdateFactory;
-import com.amap.api.maps.MapView;
-import com.amap.api.maps.model.BitmapDescriptor;
-import com.amap.api.maps.model.BitmapDescriptorFactory;
-import com.amap.api.maps.model.LatLng;
-import com.amap.api.maps.model.LatLngBounds;
-import com.amap.api.maps.model.Marker;
-import com.amap.api.maps.model.MarkerOptions;
-import com.amap.api.maps.model.Polyline;
-import com.amap.api.maps.model.PolylineOptions;
-import com.amap.api.maps.utils.SpatialRelationUtil;
-import com.amap.api.maps.utils.overlay.MovingPointOverlay;
-import com.amap.api.services.core.AMapException;
-import com.amap.api.services.core.LatLonPoint;
-import com.amap.api.services.route.BusRouteResult;
-import com.amap.api.services.route.DrivePath;
-import com.amap.api.services.route.DriveRouteResult;
-import com.amap.api.services.route.DriveStep;
-import com.amap.api.services.route.RideRouteResult;
-import com.amap.api.services.route.RouteSearch;
-import com.amap.api.services.route.TMC;
-import com.amap.api.services.route.WalkRouteResult;
 import com.edgecomputing.R;
 import com.edgecomputing.application.MainApplication;
+import com.edgecomputing.utils.BaseOperations;
 import com.edgecomputing.utils.CpuMonitor;
 import com.edgecomputing.utils.MemoryMonitor;
-import com.edgecomputing.utils.MyTensorFlow;
 import com.edgecomputing.utils.OkHttpUtil;
+import com.edgecomputing.utils.UartService;
 import com.edgecomputing.utils.WarnDialog;
 
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -74,48 +58,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String battery;
     private ImageView userImage;
     private TextView userName, userId, logout;
-    /**
-     * map相关
-     */
-    private MapView mMapView;
-    private AMap aMap;
-    private RouteSearch routeSearch;
-    private DriveRouteResult mDriveRouteResult;
-    private LatLonPoint mStartPoint = new LatLonPoint(39.959698, 116.300278);
-    private LatLonPoint mEndPoint = new LatLonPoint(39.130527, 117.176994);
-    private LatLng startPoint;
-    private LatLng endPoint;
-    private ProgressDialog progDialog = null;
-    private boolean nodeIconVisible = true;
-    private List<Marker> stationMarkers = new ArrayList<Marker>();
-    private boolean isColorfulline = true;
-    private PolylineOptions mPolylineOptions;
-    private float mWidth = 25; //路线宽度
-    private DrivePath drivePath;
-    private List<LatLng> mLatLngsOfPath;
-    private List<TMC> tmcs;
-    private Marker startMarker;
-    private Marker endMarker;
-    private Marker currentMarker;
-    private List<LatLonPoint> throughPointList;
-    private List<Marker> throughPointMarkerList = new ArrayList<Marker>();
-    private boolean throughPointMarkerVisible = true;
-    private List<Polyline> allPolyLines = new ArrayList<Polyline>();
-    private PolylineOptions mPolylineOptionscolor = null;
-    private List<MovingPointOverlay> smoothMarkerList;
-    private List<Marker> markerList;
-    private int totalCarNum = 3;
-    private int curNum = 0;
-    private Bundle savedInstanceState;
 
     private boolean STATUS = false;
     private boolean stopRunnable = false;
     private WarnDialog warnDialog;
     private MainApplication mainApplication;
     private boolean back = true;
-//    private IntentFilter intentFilter;
-    private BluetoothAdapter mBluetoothAdapter;
 //    private MyTensorFlow myTensorFlow = new MyTensorFlow(getAssets());
+
+    private static final int REQUEST_LOGIN = 1;
+    private static final int REQUEST_LOGOUT = 2;
+    private static final int REQUEST_MAP = 3;
+    private static final int REQUEST_SELECT_DEVICE = 11;
+    private static final int REQUEST_ENABLE_BT = 12;
+    private static final int UART_PROFILE_READY = 10;
+    private static final int UART_PROFILE_CONNECTED = 20;
+    private static final int UART_PROFILE_DISCONNECTED = 21;
+    private static final int STATE_OFF = 10;
+    public static boolean flag3 = false;
+    private int mState = UART_PROFILE_DISCONNECTED;
+    private UartService mService;
+    private BluetoothDevice mDevice = null;
+    private BluetoothAdapter mBtAdapter = null;
+    private ListView messageListView;
+    private ArrayAdapter<String> listAdapter;
+    private Button btnConnectDisconnect, btnSend, mbutton_height, mbutton_heart;
+    private EditText edtMessage;
+    private String currentAction;
+
     private static final String TAG = "MainActivity";
 
     Handler handler = new Handler();
@@ -125,32 +95,55 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             String cpu = CpuMonitor.getCpuRate();
             String mem = MemoryMonitor.getMemoryRate(getApplicationContext());
             postDeviceInfo(cpu, mem);
+            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+            listAdapter.add("["+currentDateTimeString+"] CPU: "+ cpu);
+            listAdapter.add("["+currentDateTimeString+"] Memory: "+ mem);
+            listAdapter.add("["+currentDateTimeString+"] Battery: "+ battery);
+            messageListView.smoothScrollToPosition(listAdapter.getCount() - 3);
+            if (flag3) {
+                //EditText editText = (EditText) findViewById(R.id.sendText);
+                String message = "heart";
+                currentAction = "heart";
+                byte[] value;
+                try {
+                    //send data to service
+                    value = message.getBytes("UTF-8");
+                    mService.writeRXCharacteristic(value);
+                    //Update the log with time stamp
+                    listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                    edtMessage.setText("");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                showMessage("没有连接设备，无法获取心率值哦!");
+            }
             if(!stopRunnable) {
-                handler.postDelayed(runnable, 5000);
+                handler.postDelayed(runnable, 15000);
             }
         }
     };
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate(MainActivity)");
-        this.savedInstanceState = savedInstanceState;
         mainApplication = (MainApplication) getApplication();
         if(!mainApplication.isLogin()) {
             Intent intent = new Intent();
             intent.setClass(MainActivity.this, LoginActivity.class);
-            startActivityForResult(intent, 1);
+            startActivityForResult(intent, REQUEST_LOGIN);
         } else {
             STATUS = true;
             setContentView(R.layout.activity_main);
-            initMainLayout(savedInstanceState);
+            initBase();
+            initBTLayout();
         }
     }
 
-    private void initMainLayout(Bundle savedInstanceState) {
-        Log.i(TAG, "initMainLayout(MainActivity)");
+    private void initBase() {
+        Log.i(TAG, "initBase(MainActivity)");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -181,13 +174,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         mainApplication.setToken("");
                         mainApplication.setLogin(false);
                         stopRunnable = true;
-                        if(receiver != null) {
-                            unregisterReceiver(receiver);
-                        }
                         Intent intent = new Intent();
                         intent.setClass(MainActivity.this, LoginActivity.class);
                         intent.putExtra("logout", true);
-                        startActivityForResult(intent, 1);
+                        startActivityForResult(intent, REQUEST_LOGOUT);
                     }
 
                     @Override
@@ -199,171 +189,264 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         /**
-         * map初始化
-         */
-        mMapView =  (MapView) findViewById(R.id.map);
-        mMapView.onCreate(savedInstanceState);
-        if (aMap == null) {
-            aMap = mMapView.getMap();
-        }
-        routeSearch = new RouteSearch(this);
-        routeSearch.setRouteSearchListener(new RouteSearch.OnRouteSearchListener() {
-            @Override
-            public void onBusRouteSearched(BusRouteResult busRouteResult, int i) {
-
-            }
-
-            @Override
-            public void onDriveRouteSearched(DriveRouteResult result, int errorCode) {
-                dissmissProgressDialog();
-                aMap.clear();// 清理地图上的所有覆盖物
-                if (errorCode == AMapException.CODE_AMAP_SUCCESS) {
-                    if (result != null && result.getPaths() != null) {
-                        if (result.getPaths().size() > 0) {
-                            mDriveRouteResult = result;
-                            drivePath = mDriveRouteResult.getPaths().get(0);
-                            //设置节点marker是否显示
-                            setNodeIconVisibility(false);
-                            // 是否用颜色展示交通拥堵情况，默认true
-                            setIsColorfulline(true);
-                            removeFromMap();
-                            addToMap();
-                            zoomToSpan();
-                            markerList = new ArrayList<>();
-                            smoothMarkerList = new ArrayList<>();
-                            for (int i = 0; i < totalCarNum; i++) {
-                                markerList.add(aMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.fromResource(R.mipmap.icon_car)).anchor(0.5f, 0.5f)));
-                                smoothMarkerList.add(new MovingPointOverlay(aMap, markerList.get(markerList.size() - 1)));
-                            }
-                            LatLng drivePoint = mLatLngsOfPath.get(0);
-                            Pair<Integer, LatLng> pair = SpatialRelationUtil.calShortestDistancePoint(mLatLngsOfPath, drivePoint);
-                            mLatLngsOfPath.set(pair.first, drivePoint);
-                            for (int i = 0; i  < smoothMarkerList.size(); i++){
-                                smoothMarkerList.get(i).setPoints(mLatLngsOfPath.subList(pair.first + i*4, mLatLngsOfPath.size()));
-                                smoothMarkerList.get(i).setTotalDuration(1000 - i*10);
-                            }
-                            for (MovingPointOverlay sm : smoothMarkerList){
-                                sm.startSmoothMove();
-                            }
-                            // 设置  自定义的InfoWindow 适配器
-                            aMap.setInfoWindowAdapter(infoWindowAdapter);
-                            // 显示 infowindow
-                            markerList.get(0).showInfoWindow();
-                            // 设置移动的监听事件  返回 距终点的距离  单位 米
-                            smoothMarkerList.get(0).setMoveListener(new MovingPointOverlay.MoveListener() {
-                                @Override
-                                public void move(double v) {
-                                    runOnUiThread(() -> {
-                                        if(title != null){
-                                            title.setText( "距离终点还有： " + (int) v + "米");
-                                            if(curNum == 0){
-                                                prisoner_icon.setImageResource(R.mipmap.prisoner_1);
-                                                prisoner_name.setText("周雷");
-                                                police_name.setText("张平");
-                                                car_no.setText("京PFT838");
-                                            }else if(curNum == 1){
-                                                prisoner_icon.setImageResource(R.mipmap.prisoner_4);
-                                                prisoner_name.setText("张中");
-                                                police_name.setText("马飞");
-                                                car_no.setText("京BV4151");
-                                            }else {
-                                                prisoner_icon.setImageResource(R.mipmap.prisoner_5);
-                                                prisoner_name.setText("尹狄勇");
-                                                police_name.setText("杜和平");
-                                                car_no.setText("京AWG392");
-                                            }
-                                        }
-                                    });
-                                }
-                            });
-                        } else if (result != null && result.getPaths() == null) {
-                            Toast.makeText(getApplicationContext(), R.string.no_result, Toast.LENGTH_LONG).show();
-                        }
-                    } else {
-                        Toast.makeText(getApplicationContext(), R.string.no_result,Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(), "errorCode：" + errorCode, Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onWalkRouteSearched(WalkRouteResult walkRouteResult, int i) {
-
-            }
-
-            @Override
-            public void onRideRouteSearched(RideRouteResult rideRouteResult, int i) {
-
-            }
-        });
-        RouteSearch.FromAndTo fromAndTo = new RouteSearch.FromAndTo(mStartPoint, mEndPoint);
-        RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(fromAndTo, 2, null, null, "");
-        routeSearch.calculateDriveRouteAsyn(query);
-
-        /**
          * 广播初始化
          */
         receiver = new BatteryReceiver();
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
+        //开启线程获取手机性能数据
+        handler.postDelayed(runnable, 15000);
+    }
 
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(!mBluetoothAdapter.isEnabled()){
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, 5);
-        }else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("提示")
-                    .setMessage("是否与手环进行配对？")
-                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            stopRunnable = true;
-//                                if(receiver != null) {
-//                                    unregisterReceiver(receiver);
-//                                }
-                            Intent intent = new Intent();
-                            intent.setClass(MainActivity.this, BlueToothActivity.class);
-                            startActivityForResult(intent, 6);
-                        }
-                    })
-                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Toast.makeText(getApplicationContext(), "未连接手环，请开启蓝牙进行配对", Toast.LENGTH_SHORT).show();
-                            stopRunnable = true;
-//                                if(receiver != null) {
-//                                    unregisterReceiver(receiver);
-//                                }
-                        }
-                    });
-            builder.create().show();
-            //开启线程获取手机性能数据
-            handler.postDelayed(runnable, 5000);
+    private void initBTLayout() {
+        Log.i(TAG, "initBTLayout(MainActivity)");
+        mBtAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBtAdapter == null) {
+            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            setResult(6);
+            finish();
+            return;
         }
+        messageListView = (ListView) findViewById(R.id.listMessage);
+        listAdapter = new ArrayAdapter<String>(this, R.layout.message_detail);
+        messageListView.setAdapter(listAdapter);
+        messageListView.setDivider(null);
+        btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
+        mbutton_height = (Button) findViewById(R.id.button_hight);
+        mbutton_heart = (Button) findViewById(R.id.button_heart);
+        btnSend = (Button) findViewById(R.id.sendButton);
+        edtMessage = (EditText) findViewById(R.id.sendText);
+        initService();
+
+        // Handler Disconnect & Connect button
+        btnConnectDisconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mBtAdapter.isEnabled()) {
+                    Log.i(TAG, "onClick - BT not enabled yet");
+                    Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+                }
+                else {
+                    if (btnConnectDisconnect.getText().equals("Connect")){
+                        //Connect button pressed, open DeviceListActivity class, with popup windows that scan for devices
+                        Intent newIntent = new Intent(MainActivity.this, DeviceListActivity.class);
+                        startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
+                        //Log.d(TAG, "寻找请求码:"+REQUEST_SELECT_DEVICE);
+                    } else {
+                        //Disconnect button pressed
+                        if (mDevice!=null)
+                        {
+                            mService.disconnect();
+                        }
+                    }
+                }
+            }
+        });
+        // Handler Send button
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText editText = (EditText) findViewById(R.id.sendText);
+                String message = editText.getText().toString();
+                byte[] value;
+                try {
+                    //send data to service
+                    value = message.getBytes("UTF-8");
+                    mService.writeRXCharacteristic(value);
+                    //Update the log with time stamp
+                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                    listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                    edtMessage.setText("");
+                } catch (UnsupportedEncodingException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Handler Send button
+        mbutton_height.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (flag3) {
+                    //EditText editText = (EditText) findViewById(R.id.sendText);
+                    String message = "high";
+                    currentAction = "high";
+                    byte[] value;
+                    try {
+                        //send data to service
+                        value = message.getBytes("UTF-8");
+                        mService.writeRXCharacteristic(value);
+                        //Update the log with time stamp
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        edtMessage.setText("");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }else {
+                    showMessage("没有连接设备，无法获取高度值哦!");
+                }
+            }
+        });
+        // Handler Send button
+        mbutton_heart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (flag3) {
+                    //EditText editText = (EditText) findViewById(R.id.sendText);
+                    String message = "heart";
+                    currentAction = "heart";
+                    byte[] value;
+                    try {
+                        //send data to service
+                        value = message.getBytes("UTF-8");
+                        mService.writeRXCharacteristic(value);
+                        //Update the log with time stamp
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        edtMessage.setText("");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    showMessage("没有连接设备，无法获取心率值哦!");
+                }
+            }
+        });
+
 //        if(myTensorFlow.initTensorFlow()) {
 //            myTensorFlow.runTensorFlow();
 //        }
     }
 
-    public void getHeartRateOnMap() {
-//        if (flag3) {
-//            byte[] value;
-//            try {
-//                //send data to service
-//                mService.writeRXCharacteristic(value);
-//                //Update the log with time stamp
-//                String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-//                listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
-//                messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-//                edtMessage.setText("");
-//            } catch (UnsupportedEncodingException e) {
-//                e.printStackTrace();
-//            }
-//        } else {
-//            showMessage("没有连接设备，无法获取心率值哦!");
-//        }
+    private void initService() {
+        Intent bindIntent = new Intent(this, UartService.class);
+        bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, makeGattUpdateIntentFilter());
+    }
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder rawBinder) {
+            mService = ((UartService.LocalBinder) rawBinder).getService();
+            Log.d(TAG, "onServiceConnected mService= " + mService);
+            if (!mService.initialize()) {
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName classname) {
+            mService = null;
+        }
+    };
+
+    private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            final Intent mIntent = intent;
+            if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        Log.d(TAG, "UART_CONNECT_MSG");
+                        btnConnectDisconnect.setText("Disconnect");
+                        edtMessage.setEnabled(true);
+                        btnSend.setEnabled(true);
+                        flag3 = true;
+                        ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - ready");
+                        listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        mState = UART_PROFILE_CONNECTED;
+                    }
+                });
+            }
+            if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        Log.d(TAG, "UART_DISCONNECT_MSG");
+                        btnConnectDisconnect.setText("Connect");
+                        edtMessage.setEnabled(false);
+                        btnSend.setEnabled(false);
+                        ((TextView) findViewById(R.id.deviceName)).setText("Not Connected");
+                        listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
+                        mState = UART_PROFILE_DISCONNECTED;
+                        mService.close();
+                        //setUiState();
+                    }
+                });
+            }
+            if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
+                mService.enableTXNotification();
+            }
+            if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
+                final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String text = new String(txValue, "UTF-8");
+                            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                            if(currentAction.equals("heart")) {
+                                postHeartRate(BaseOperations.ByteArrToHeartRate(txValue));
+                                listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHeartRate(txValue));
+                            }else if(currentAction.equals("high")) {
+                                listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHex(txValue) + "  hpa");
+                            }
+                            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                            Log.i("sendhand", "蓝牙发送手环数据:" + BaseOperations.ByteArrToHex(txValue));
+                        } catch (Exception e) {
+                            Log.e(TAG, e.toString());
+                        }
+                    }
+                });
+            }
+            if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)){
+                showMessage("Device doesn't support UART. Disconnecting");
+                mService.disconnect();
+            }
+        }
+    };
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(UartService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(UartService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
+        return intentFilter;
+    }
+
+    public void postHeartRate(String heart) {
+        if(mainApplication.getPrisonerId() == null) {
+            showMessage("无法获取服刑人员编号，心率数据无法上传");
+        }else {
+            HashMap<String, String> params = new HashMap<>(1);
+            params.put("prisonerId", mainApplication.getPrisonerId());
+            params.put("heartbeat", heart);
+            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                @Override
+                public void onReqSuccess(String result) {
+                    Log.i(TAG, result);
+                }
+
+                @Override
+                public void onReqFailed(String errorMsg) {
+                    Log.e(TAG, errorMsg);
+                }
+            });
+        }
+
     }
 
     private void showMessage(String msg) {
@@ -403,331 +486,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     *  个性化定制的信息窗口视图的类
-     *  如果要定制化渲染这个信息窗口，需要重载getInfoWindow(Marker)方法。
-     *  如果只是需要替换信息窗口的内容，则需要重载getInfoContents(Marker)方法。
+     * 广播接收者
      */
-    TextView title, prisoner_name, police_name, car_no;
-    ImageView prisoner_icon;
-    AMap.InfoWindowAdapter infoWindowAdapter = new AMap.InfoWindowAdapter(){
-
-        // 个性化Marker的InfoWindow 视图
-        // 如果这个方法返回null，则将会使用默认的信息窗口风格，内容将会调用getInfoContents(Marker)方法获取
+    private class BatteryReceiver extends BroadcastReceiver {
         @Override
-        public View getInfoWindow(Marker marker) {
-            currentMarker = marker;
-            View infoWindow = getLayoutInflater().inflate(R.layout.custom_info_window,null);
-            render(marker, infoWindow);
-            return infoWindow;
-        }
-
-        // 这个方法只有在getInfoWindow(Marker)返回null 时才会被调用
-        // 定制化的view 做这个信息窗口的内容，如果返回null 将以默认内容渲染
-        @Override
-        public View getInfoContents(Marker marker) {
-            return null;
-        }
-    };
-
-    public void render(Marker marker, View view) {
-        //如果想修改自定义Infow中内容，请通过view找到它并修改
-        title = (TextView) view.findViewById(R.id.title);
-        prisoner_icon = (ImageView) view.findViewById(R.id.escort_image);
-        prisoner_name = (TextView) view.findViewById(R.id.prisoner_name);
-        police_name = (TextView) view.findViewById(R.id.police_name);
-        car_no = (TextView) view.findViewById(R.id.car_no);
-        title.setText("距离终点还有： " + " " + "米");
-        prisoner_icon.setImageResource(R.mipmap.escort_dog);
-        prisoner_name.setText("");
-        police_name.setText("");
-        car_no.setText("");
-    }
-
-    public void showPreCarInfo(View view){
-        if(aMap!=null && markerList.size()!= 0){
-            curNum = (curNum + totalCarNum+1)%totalCarNum;
-            markerList.get(curNum).showInfoWindow();
-        }
-    }
-
-    public void showNextCarInfo(View view){
-        if(aMap!=null && markerList.size()!= 0){
-            curNum = (curNum + totalCarNum-1)%totalCarNum;
-            markerList.get(curNum).showInfoWindow();
-        }
-    }
-
-    /**
-     * 隐藏进度框
-     */
-    private void dissmissProgressDialog() {
-        if (progDialog != null) {
-            progDialog.dismiss();
-        }
-    }
-
-    public void removeFromMap() {
-        try {
-            if (startMarker != null) {
-                startMarker.remove();
-            }
-            if (endMarker != null) {
-                endMarker.remove();
-            }
-            for (Marker marker : stationMarkers) {
-                marker.remove();
-            }
-            for (Polyline line : allPolyLines) {
-                line.remove();
-            }
-            if (this.throughPointMarkerList != null
-                    && this.throughPointMarkerList.size() > 0) {
-                for (int i = 0; i < this.throughPointMarkerList.size(); i++) {
-                    this.throughPointMarkerList.get(i).remove();
-                }
-                this.throughPointMarkerList.clear();
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void zoomToSpan() {
-        if (mStartPoint != null) {
-            if (aMap == null){
-                return;
-            }
-            try {
-                LatLngBounds bounds = getLatLngBounds();
-                aMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
-            } catch (Throwable e) {
-                e.printStackTrace();
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
+                int level = intent.getIntExtra("level", 0);
+                battery = level + "";
             }
         }
     }
 
-    private LatLngBounds getLatLngBounds() {
-        LatLngBounds.Builder b = LatLngBounds.builder();
-        b.include(new com.amap.api.maps.model.LatLng(mStartPoint.getLatitude(), mStartPoint.getLongitude()));
-        b.include(new LatLng(mEndPoint.getLatitude(), mEndPoint.getLongitude()));
-        return b.build();
-    }
-
-    private void addStationMarker(MarkerOptions options) {
-        if(options == null) {
-            return;
-        }
-        Marker marker = aMap.addMarker(options);
-        if(marker != null) {
-            stationMarkers.add(marker);
-        }
-    }
-
-    /**
-     * 路段节点图标控制显示接口。
-     * @param visible true为显示节点图标，false为不显示。
-     * @since V2.3.1
-     */
-    public void setNodeIconVisibility(boolean visible) {
-        try {
-            nodeIconVisible = visible;
-            if (stationMarkers != null && stationMarkers.size() > 0) {
-                for (int i = 0; i < stationMarkers.size(); i++) {
-                    stationMarkers.get(i).setVisible(visible);
-                }
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setIsColorfulline(boolean iscolorfulline) {
-        this.isColorfulline = iscolorfulline;
-    }
-
-    /**
-     * 添加驾车路线添加到地图上显示。
-     */
-    public void addToMap() {
-        initPolylineOptions();
-        try {
-            if (aMap == null) {
-                return;
-            }
-            if (mWidth == 0 || drivePath == null) {
-                return;
-            }
-            mLatLngsOfPath = new ArrayList<LatLng>();
-            tmcs = new ArrayList<TMC>();
-            List<DriveStep> drivePaths = drivePath.getSteps();
-            startPoint = convertToLatLng(mStartPoint);
-            endPoint = convertToLatLng(mEndPoint);
-            mPolylineOptions.add(startPoint);
-            for (DriveStep step : drivePaths) {
-                List<LatLonPoint> latlonPoints = step.getPolyline();
-                List<TMC> tmclist = step.getTMCs();
-                tmcs.addAll(tmclist);
-                addDrivingStationMarkers(step, convertToLatLng(latlonPoints.get(0)));
-                for (LatLonPoint latlonpoint : latlonPoints) {
-                    mPolylineOptions.add(convertToLatLng(latlonpoint));
-                    mLatLngsOfPath.add(convertToLatLng(latlonpoint));
-                }
-            }
-            mPolylineOptions.add(endPoint);
-            if (startMarker != null) {
-                startMarker.remove();
-                startMarker = null;
-            }
-            if (endMarker != null) {
-                endMarker.remove();
-                endMarker = null;
-            }
-            addStartAndEndMarker();
-            addThroughPointMarker();
-            if (isColorfulline && tmcs.size()>0 ) {
-                colorWayUpdate(tmcs);
-            }else {
-                addPolyLine(mPolylineOptions);
-            }
-
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 根据不同的路段拥堵情况展示不同的颜色
-     * @param tmcSection
-     */
-    private void colorWayUpdate(List<TMC> tmcSection) {
-        if (aMap == null) {
-            return;
-        }
-        if (tmcSection == null || tmcSection.size() <= 0) {
-            return;
-        }
-        TMC segmentTrafficStatus;
-        addPolyLine(new PolylineOptions().add(startPoint,
-                convertToLatLng(tmcSection.get(0).getPolyline().get(0)))
-                .setDottedLine(true));
-        String status = "";
-        for (int i = 0; i < tmcSection.size(); i++) {
-            segmentTrafficStatus = tmcSection.get(i);
-            List<LatLonPoint> mployline = segmentTrafficStatus.getPolyline();
-            if (status.equals(segmentTrafficStatus.getStatus())) {
-                for (int j = 1; j < mployline.size(); j++) {
-                    //第一个点和上一段最后一个点重复，这个不重复添加
-                    mPolylineOptionscolor.add(convertToLatLng(mployline.get(j)));
-                }
-            }else {
-                if (mPolylineOptionscolor != null) {
-                    addPolyLine(mPolylineOptionscolor.color(getcolor(status)));
-                }
-                mPolylineOptionscolor = null;
-                mPolylineOptionscolor = new PolylineOptions().width(mWidth);
-                status = segmentTrafficStatus.getStatus();
-                for (int j = 0; j < mployline.size(); j++) {
-                    mPolylineOptionscolor.add(convertToLatLng(mployline.get(j)));
-                }
-            }
-            if (i == tmcSection.size()-1 && mPolylineOptionscolor != null) {
-                addPolyLine(mPolylineOptionscolor.color(getcolor(status)));
-                addPolyLine(new PolylineOptions().add(
-                        convertToLatLng(mployline.get(mployline.size()-1)), endPoint)
-                        .setDottedLine(true));
-            }
-        }
-    }
-
-    private int getcolor(String status) {
-        if (status.equals("畅通")) {
-            return Color.GREEN;
-        } else if (status.equals("缓行")) {
-            return Color.YELLOW;
-        } else if (status.equals("拥堵")) {
-            return Color.RED;
-        } else if (status.equals("严重拥堵")) {
-            return Color.parseColor("#990033");
-        } else {
-            return Color.parseColor("#537edc");
-        }
-    }
-
-    private void addPolyLine(PolylineOptions options) {
-        if(options == null) {
-            return;
-        }
-        Polyline polyline = aMap.addPolyline(options);
-        if(polyline != null) {
-            allPolyLines.add(polyline);
-        }
-    }
-
-    private void addThroughPointMarker() {
-        if (this.throughPointList != null && this.throughPointList.size() > 0) {
-            LatLonPoint latLonPoint = null;
-            for (int i = 0; i < this.throughPointList.size(); i++) {
-                latLonPoint = this.throughPointList.get(i);
-                if (latLonPoint != null) {
-                    throughPointMarkerList.add(aMap
-                            .addMarker((new MarkerOptions())
-                                    .position(
-                                            new LatLng(latLonPoint
-                                                    .getLatitude(), latLonPoint
-                                                    .getLongitude()))
-                                    .visible(throughPointMarkerVisible)
-                                    .icon(getThroughPointBitDes())
-                                    .title("\u9014\u7ECF\u70B9")));
-                }
-            }
-        }
-    }
-
-    private BitmapDescriptor getThroughPointBitDes() {
-        return BitmapDescriptorFactory.fromResource(R.mipmap.amap_through);
-    }
-
-    private void addStartAndEndMarker() {
-        startMarker = aMap.addMarker((new MarkerOptions())
-                .position(startPoint).icon(getStartBitmapDescriptor())
-                .title("\u8D77\u70B9"));
-        endMarker = aMap.addMarker((new MarkerOptions()).position(endPoint)
-                .icon(getEndBitmapDescriptor()).title("\u7EC8\u70B9"));
-    }
-
-    /**
-     * 给起点Marker设置图标，并返回更换图标的图片。如不用默认图片，需要重写此方法。
-     * @return 更换的Marker图片。
-     * @since V2.1.0
-     */
-    private BitmapDescriptor getStartBitmapDescriptor() {
-        return BitmapDescriptorFactory.fromResource(R.mipmap.amap_start);
-    }
-    private BitmapDescriptor getEndBitmapDescriptor() {
-        return BitmapDescriptorFactory.fromResource(R.mipmap.amap_end);
-    }
-    private BitmapDescriptor getDriveBitmapDescriptor() {
-        return BitmapDescriptorFactory.fromResource(R.mipmap.amap_car);
-    }
-
-    private void addDrivingStationMarkers(DriveStep driveStep, LatLng latLng) {
-        addStationMarker(new MarkerOptions()
-                .position(latLng)
-                .title("\u65B9\u5411:" + driveStep.getAction()
-                        + "\n\u9053\u8DEF:" + driveStep.getRoad())
-                .snippet(driveStep.getInstruction()).visible(nodeIconVisible)
-                .anchor(0.5f, 0.5f).icon(getDriveBitmapDescriptor()));
-    }
-
-    public static LatLng convertToLatLng(LatLonPoint latLonPoint) {
-        return new LatLng(latLonPoint.getLatitude(), latLonPoint.getLongitude());
-    }
-
-    private void initPolylineOptions() {
-        mPolylineOptions = null;
-        mPolylineOptions = new PolylineOptions();
-        mPolylineOptions.color(Color.parseColor("#537edc")).width(18f);
-    }
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            moveTaskToBack(false);
+//            return true;
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
 
     @Override
     public void onBackPressed() {
@@ -735,8 +513,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
+        }
+        Log.i(TAG, "蓝牙连接状态码：" + mState);
+        if (mState == UART_PROFILE_CONNECTED) {
+            moveTaskToBack(false);
+//            Intent startMain = new Intent();
+//            startMain.setAction(Intent.ACTION_MAIN);
+//            startMain.addCategory(Intent.CATEGORY_HOME);
+//            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startActivity(startMain);
+            showMessage("nRFUART's running in background.\n             Disconnect to exit");
+        }else {
+            new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(R.string.popup_title)
+                    .setMessage(R.string.popup_message)
+                    .setPositiveButton(R.string.popup_yes, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finish();
+                        }
+                    })
+                    .setNegativeButton(R.string.popup_no, null)
+                    .show();
         }
     }
 
@@ -758,7 +557,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -772,11 +570,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // Handle the camera action
         } else if (id == R.id.nav_info) {
 
-        } else if (id == R.id.nav_bluetooth) {
-            stopRunnable = true;
+        } else if (id == R.id.nav_map) {
+//            stopRunnable = true;
             Intent intent = new Intent();
-            intent.setClass(MainActivity.this, BlueToothActivity.class);
-            startActivityForResult(intent, 7);
+            intent.setClass(MainActivity.this, MapActivity.class);
+            startActivityForResult(intent, REQUEST_MAP);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -784,69 +582,53 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    /**
-     * 广播接收者
-     */
-    private class BatteryReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (Intent.ACTION_BATTERY_CHANGED.equals(intent.getAction())) {
-                int level = intent.getIntExtra("level", 0);
-                battery = level + "";
-            }
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.i(TAG, "onActivityResult(MainActivity)");
-        if(resultCode == 1) {
-            setContentView(R.layout.activity_main);
-            STATUS = true;
-            initMainLayout(savedInstanceState);
-        }else if(resultCode == 2) {
-            stopRunnable = false;
-            IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-            registerReceiver(receiver, intentFilter);
-            handler.postDelayed(runnable, 5000);
-        }else if(resultCode == 3) {
-            finish();
-        }else if(resultCode == 4) {
-            back = false;
-            finish();
-        }else if(requestCode == 5) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("提示")
-                    .setMessage("是否与手环进行配对？")
-                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            stopRunnable = true;
-                            Intent intent = new Intent();
-                            intent.setClass(MainActivity.this, BlueToothActivity.class);
-                            startActivityForResult(intent, 6);
-                        }
-                    })
-                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Toast.makeText(getApplicationContext(), "未连接手环，请开启蓝牙进行配对", Toast.LENGTH_SHORT).show();
-                            stopRunnable = true;
-                        }
-                    });
-            builder.create().show();
-            stopRunnable = true;
-            handler.postDelayed(runnable, 5000);
-        }else if(resultCode == 6 || resultCode == 7) {
-
-//            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-//            if(pairedDevices.size() > 0){
+        Log.d(TAG, "特殊设备程序运行到这里了："+requestCode);
+        switch (requestCode) {
+            case REQUEST_LOGIN:
+                setContentView(R.layout.activity_main);
+                STATUS = true;
+                initBase();
+                initBTLayout();
+                break;
+            case REQUEST_LOGOUT:
+                stopRunnable = false;
+                handler.postDelayed(runnable, 15000);
+                break;
+            case REQUEST_MAP:
 //                stopRunnable = true;
-//                handler.postDelayed(runnable, 5000);
-//            } else {
-//                Toast.makeText(this, "未连接蓝牙设备", Toast.LENGTH_SHORT).show();
-//            }
+//                handler.postDelayed(runnable, 15000);
+                break;
+            case REQUEST_SELECT_DEVICE:
+                //When the DeviceListActivity return, with the selected device address
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                    Log.d(TAG, "... onActivity.address=="+deviceAddress);
+                    mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
+                    Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "   mserviceValue:" + mService);
+                    ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - connecting");
+                    Log.i(TAG, deviceAddress);
+                    mService.connect(deviceAddress);
+                }
+                break;
+            case REQUEST_ENABLE_BT:
+                // When the request to enable Bluetooth returns
+                if (resultCode == Activity.RESULT_OK) {
+                    Toast.makeText(this, "Bluetooth has turned on ", Toast.LENGTH_SHORT).show();
+                } else {
+                    // User did not enable Bluetooth or an error occurred
+                    Log.d(TAG, "BT not enabled");
+                    Toast.makeText(this, "Problem in BT Turning ON ", Toast.LENGTH_SHORT).show();
+//                    setResult(6);
+//                    finish();
+                }
+                break;
+            default:
+                Log.e(TAG, "wrong request code");
+                break;
         }
     }
 
@@ -861,18 +643,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
         Log.i(TAG, "onDestroy(MainActivity)");
         if(STATUS){
-            if(receiver != null && back) {
+            if(receiver != null) {
                 unregisterReceiver(receiver);
             }
-            for (int i = 0; i < smoothMarkerList.size(); i++){
-                if(smoothMarkerList.get(i) != null) {
-                    smoothMarkerList.get(i).setMoveListener(null);
-                    smoothMarkerList.get(i).destroy();
-                }
-            }        // 销毁平滑移动marker
-            mMapView.onDestroy();
             stopRunnable = true;
             handler.removeCallbacks(runnable);
+
+            try {
+                LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
+            } catch (Exception ignore) {
+                Log.e(TAG, ignore.toString());
+            }
+            unbindService(mServiceConnection);
+            mService.stopSelf();
+            mService= null;
         }
     }
 
@@ -880,17 +664,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause(MainActivity)");
-        if(STATUS){
-            mMapView.onPause();
-        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume(MainActivity)");
-        if(STATUS){
-            mMapView.onResume();
+        if(STATUS) {
+            if (!mBtAdapter.isEnabled()) {
+                Log.i(TAG, "onResume - BT not enabled yet");
+                Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            }
         }
     }
 
@@ -901,10 +686,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if(STATUS){
-            mMapView.onSaveInstanceState(outState);
-        }
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 }

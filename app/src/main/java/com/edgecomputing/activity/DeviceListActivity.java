@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -37,6 +38,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -58,7 +61,7 @@ import com.edgecomputing.R;
 import com.edgecomputing.adapter.BlueListAdapter;
 import com.edgecomputing.bean.BlueDevice;
 
-public class DeviceListActivity extends Activity {
+public class DeviceListActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter;
 
    // private BluetoothAdapter mBtAdapter;
@@ -133,6 +136,7 @@ public class DeviceListActivity extends Activity {
             @Override
             public void onItemClick(View v, int position) {
                 BluetoothDevice device = deviceList.get(position);
+                showMessage("开始与" + device.getName() + "进行配对");
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
                 Bundle b = new Bundle();
@@ -142,9 +146,33 @@ public class DeviceListActivity extends Activity {
                 result.putExtras(b);
                 setResult(Activity.RESULT_OK, result);
                 finish();
+//                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+//                builder.setTitle("提示")
+//                        .setMessage("是否与手环进行配对？")
+//                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                showMessage("开始与" + device.getName() + "进行配对");
+//                                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//
+//                                Bundle b = new Bundle();
+//                                b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());
+//
+//                                Intent result = new Intent();
+//                                result.putExtras(b);
+//                                setResult(Activity.RESULT_OK, result);
+//                                finish();
+//                            }
+//                        })
+//                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                showMessage("未连接手环，请开启蓝牙进行配对");
+//                            }
+//                        });
+//                builder.create().show();
             }
         });
-
         scanLeDevice(true);
     }
     

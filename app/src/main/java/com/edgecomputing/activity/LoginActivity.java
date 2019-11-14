@@ -65,10 +65,10 @@ public class LoginActivity extends AppCompatActivity {
     public void init() {
         userNameEt = (EditText) findViewById(R.id.et_userName);
         pwdEt = (EditText) findViewById(R.id.et_password);
-        prisonerIdEt = (EditText) findViewById(R.id.et_prisonerId);
+//        prisonerIdEt = (EditText) findViewById(R.id.et_prisonerId);
         userNameClear = (ImageView) findViewById(R.id.iv_unameClear);
         pwdClear = (ImageView) findViewById(R.id.iv_pwdClear);
-        idClear = (ImageView) findViewById(R.id.iv_idClear);
+//        idClear = (ImageView) findViewById(R.id.iv_idClear);
         loginBtn = (Button) findViewById(R.id.btn_login);
         registerTv = (TextView) findViewById(R.id.tv_register);
         rememberPwd = (CheckBox) findViewById(R.id.cb_checkbox);
@@ -160,7 +160,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                     HashMap<String, String> params = new HashMap<>(3);
                     params.put("userName", userNameEt.getText().toString());
-                    params.put("prisonerId", prisonerIdEt.getText().toString());
+//                    params.put("prisonerId", prisonerIdEt.getText().toString());
                     params.put("password", pwdEt.getText().toString());
                     OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/login", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override

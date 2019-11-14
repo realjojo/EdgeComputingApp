@@ -57,7 +57,7 @@ public class UartService extends Service {
     public static final UUID TX_CHAR_UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb");//6e400003-b5a3-f393-e0a9-e50e24dcca9e
 
     private BluetoothDevice remoteDevice;
-    private MainApplication mainApplication = (MainApplication) getApplication();
+
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
@@ -71,6 +71,7 @@ public class UartService extends Service {
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
+                MainApplication mainApplication = (MainApplication) getApplication();
                 if(mainApplication.getDeviceNo() != null && remoteDevice != null) {
                     HashMap<String, String> params = new HashMap<>();
                     params.put("deviceNo", mainApplication.getDeviceNo());
@@ -316,7 +317,7 @@ public class UartService extends Service {
     }
     
     private void showMessage(String msg) {
-        Log.e(TAG, msg);
+        Log.i(TAG, msg);
     }
 
     /**

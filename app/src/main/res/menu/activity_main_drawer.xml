@@ -13,9 +13,9 @@
             android:icon="@mipmap/info"
             android:title="服刑人员信息" />
         <item
-            android:id="@+id/nav_bluetooth"
-            android:icon="@mipmap/bt"
-            android:title="手环连接" />
+            android:id="@+id/nav_map"
+            android:icon="@mipmap/ic_map"
+            android:title="轨迹展示" />
         <!--<item-->
             <!--android:id="@+id/nav_manage"-->
             <!--android:icon="@drawable/ic_menu_manage"-->
