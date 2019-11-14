@@ -60,7 +60,10 @@ import com.edgecomputing.utils.MyTensorFlow;
 import com.edgecomputing.utils.OkHttpUtil;
 import com.edgecomputing.utils.WarnDialog;
 
+import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -306,55 +309,65 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         registerReceiver(receiver, intentFilter);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(mBluetoothAdapter == null){
-            // 说明此设备不支持蓝牙操作
-        }
         if(!mBluetoothAdapter.isEnabled()){
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, 5);
         }else {
-            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-            List<String> stringList = new ArrayList<>();
-            if(pairedDevices.size() > 0){
-                for(BluetoothDevice device : pairedDevices){
-                    if(device.getName().equals("手环")) { //todo
-                        Toast.makeText(this, "已连接手环", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            } else {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("提示")
-                        .setMessage("是否与手环进行配对？")
-                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                stopRunnable = true;
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("提示")
+                    .setMessage("是否与手环进行配对？")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            stopRunnable = true;
 //                                if(receiver != null) {
 //                                    unregisterReceiver(receiver);
 //                                }
-                                Intent intent = new Intent();
-                                intent.setClass(MainActivity.this, BlueToothActivity.class);
-                                startActivityForResult(intent, 6);
-                            }
-                        })
-                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Toast.makeText(getApplicationContext(), "未连接手环，请开启蓝牙进行配对", Toast.LENGTH_SHORT).show();
-                                stopRunnable = true;
+                            Intent intent = new Intent();
+                            intent.setClass(MainActivity.this, BlueToothActivity.class);
+                            startActivityForResult(intent, 6);
+                        }
+                    })
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Toast.makeText(getApplicationContext(), "未连接手环，请开启蓝牙进行配对", Toast.LENGTH_SHORT).show();
+                            stopRunnable = true;
 //                                if(receiver != null) {
 //                                    unregisterReceiver(receiver);
 //                                }
-                            }
-                        });
-                builder.create().show();
-            }
+                        }
+                    });
+            builder.create().show();
             //开启线程获取手机性能数据
             handler.postDelayed(runnable, 5000);
         }
 //        if(myTensorFlow.initTensorFlow()) {
 //            myTensorFlow.runTensorFlow();
 //        }
+    }
+
+    public void getHeartRateOnMap() {
+//        if (flag3) {
+//            byte[] value;
+//            try {
+//                //send data to service
+//                mService.writeRXCharacteristic(value);
+//                //Update the log with time stamp
+//                String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+//                messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+//                edtMessage.setText("");
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
+//        } else {
+//            showMessage("没有连接设备，无法获取心率值哦!");
+//        }
+    }
+
+    private void showMessage(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     public void postDeviceInfo(String cpu, String mem) {
@@ -826,13 +839,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             stopRunnable = true;
             handler.postDelayed(runnable, 5000);
         }else if(resultCode == 6 || resultCode == 7) {
-            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-            if(pairedDevices.size() > 0){
-                stopRunnable = true;
-                handler.postDelayed(runnable, 5000);
-            } else {
-                Toast.makeText(this, "未连接蓝牙设备", Toast.LENGTH_SHORT).show();
-            }
+
+//            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+//            if(pairedDevices.size() > 0){
+//                stopRunnable = true;
+//                handler.postDelayed(runnable, 5000);
+//            } else {
+//                Toast.makeText(this, "未连接蓝牙设备", Toast.LENGTH_SHORT).show();
+//            }
         }
     }
 

@@ -1,63 +1,35 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.edgecomputing.activity;
 
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 import com.edgecomputing.R;
+import com.edgecomputing.application.MainApplication;
 import com.edgecomputing.utils.BaseOperations;
+import com.edgecomputing.utils.OkHttpUtil;
 import com.edgecomputing.utils.UartService;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass.Device;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothManager;
 
-import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -80,6 +52,8 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
     private ArrayAdapter<String> listAdapter;
     private Button btnConnectDisconnect,btnSend,mbutton_hight,mbutton_heart;
     private EditText edtMessage;
+    private MainApplication mainApplication;
+    private String currentAction;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,17 +62,19 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBtAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            setResult(6);
             finish();
             return;
         }
+        mainApplication = (MainApplication) getApplication();
         messageListView = (ListView) findViewById(R.id.listMessage);
         listAdapter = new ArrayAdapter<String>(this, R.layout.message_detail);
         messageListView.setAdapter(listAdapter);
         messageListView.setDivider(null);
-        btnConnectDisconnect=(Button) findViewById(R.id.btn_select);
-        mbutton_hight=(Button) findViewById(R.id.button_hight);
-        mbutton_heart=(Button) findViewById(R.id.button_heart);
-        btnSend=(Button) findViewById(R.id.sendButton);
+        btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
+        mbutton_hight = (Button) findViewById(R.id.button_hight);
+        mbutton_heart = (Button) findViewById(R.id.button_heart);
+        btnSend = (Button) findViewById(R.id.sendButton);
         edtMessage = (EditText) findViewById(R.id.sendText);
         service_init();
 
@@ -156,6 +132,7 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                 if (flag3) {
                     //EditText editText = (EditText) findViewById(R.id.sendText);
                     String message = "high";
+                    currentAction = "high";
                     byte[] value;
                     try {
                         //send data to service
@@ -167,7 +144,6 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                         messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                         edtMessage.setText("");
                     } catch (UnsupportedEncodingException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }else {
@@ -182,6 +158,7 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                 if (flag3) {
                     //EditText editText = (EditText) findViewById(R.id.sendText);
                     String message = "heart";
+                    currentAction = "heart";
                     byte[] value;
                     try {
                         //send data to service
@@ -193,59 +170,37 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                         messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                         edtMessage.setText("");
                     } catch (UnsupportedEncodingException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
-                }else {
+                } else {
                     showMessage("没有连接设备，无法获取心率值哦!");
                 }
             }
         });
-
-        // Set initial UI state
     }
 
-    //UART service connected/disconnected
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className, IBinder rawBinder) {
             mService = ((UartService.LocalBinder) rawBinder).getService();
-//            mService = new UartService();
-//            mService.initialize();
-//            UartService.LocalBinder localBinder = new mService.LocalBinder();
-//            mService = new UartService();
-//            mService.initialize();
             Log.d(TAG, "onServiceConnected mService= " + mService);
             if (!mService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
             }
-
         }
 
         @Override
         public void onServiceDisconnected(ComponentName classname) {
-            ////     mService.disconnect(mDevice);
             mService = null;
         }
     };
 
-    private Handler mHandler = new Handler() {
-        @Override
-
-        //Handler events that received from UART service
-        public void handleMessage(Message msg) {
-
-        }
-    };
-
     private final BroadcastReceiver UARTStatusChangeReceiver = new BroadcastReceiver() {
-
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             final Intent mIntent = intent;
-            //*********************//
             if (action.equals(UartService.ACTION_GATT_CONNECTED)) {
                 runOnUiThread(new Runnable() {
                     @Override
@@ -255,7 +210,7 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                         btnConnectDisconnect.setText("Disconnect");
                         edtMessage.setEnabled(true);
                         btnSend.setEnabled(true);
-                        flag3=true;
+                        flag3 = true;
                         ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - ready");
                         listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
                         messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
@@ -263,8 +218,6 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                     }
                 });
             }
-
-            //*********************//
             if (action.equals(UartService.ACTION_GATT_DISCONNECTED)) {
                 runOnUiThread(new Runnable() {
                     @Override
@@ -282,15 +235,10 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                     }
                 });
             }
-
-
-            //*********************//
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
                 mService.enableTXNotification();
             }
-            //*********************//
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
-
                 final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
                 runOnUiThread(new Runnable() {
                     @Override
@@ -298,7 +246,12 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                         try {
                             String text = new String(txValue, "UTF-8");
                             String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                            listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHex(txValue));
+                            if(currentAction.equals("heart")) {
+                                postHeartRate(BaseOperations.ByteArrToHeartRate(txValue));
+                                listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHeartRate(txValue));
+                            }else if(currentAction.equals("high")) {
+                                listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHeight(txValue) + "  hpa");
+                            }
                             messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                             Log.i("sendhand", "蓝牙发送手环数据:" + BaseOperations.ByteArrToHex(txValue));
                         } catch (Exception e) {
@@ -307,7 +260,6 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                     }
                 });
             }
-            //*********************//
             if (action.equals(UartService.DEVICE_DOES_NOT_SUPPORT_UART)){
                 showMessage("Device doesn't support UART. Disconnecting");
                 mService.disconnect();
@@ -318,9 +270,9 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
     private void service_init() {
         Intent bindIntent = new Intent(this, UartService.class);
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-
         LocalBroadcastManager.getInstance(this).registerReceiver(UARTStatusChangeReceiver, makeGattUpdateIntentFilter());
     }
+
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(UartService.ACTION_GATT_CONNECTED);
@@ -330,16 +282,17 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
         intentFilter.addAction(UartService.DEVICE_DOES_NOT_SUPPORT_UART);
         return intentFilter;
     }
+
     @Override
     public void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart(BlueToothActivity)");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy()");
-
+        Log.d(TAG, "onDestroy(BlueToothActivity)");
         try {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
         } catch (Exception ignore) {
@@ -352,26 +305,26 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
 
     @Override
     protected void onStop() {
-        Log.d(TAG, "onStop");
+        Log.d(TAG, "onStop(BlueToothActivity)");
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        Log.d(TAG, "onPause");
+        Log.d(TAG, "onPause(BlueToothActivity)");
         super.onPause();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.d(TAG, "onRestart");
+        Log.d(TAG, "onRestart(BlueToothActivity)");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume");
+        Log.d(TAG, "onResume(BlueToothActivity)");
         if (!mBtAdapter.isEnabled()) {
             Log.i(TAG, "onResume - BT not enabled yet");
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -394,7 +347,6 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                     String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
                     Log.d(TAG, "... onActivity.address=="+deviceAddress);
                     mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
-
                     Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "   mserviceValue:" + mService);
                     ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - connecting");
                     Log.i(TAG, deviceAddress);
@@ -405,11 +357,11 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
                     Toast.makeText(this, "Bluetooth has turned on ", Toast.LENGTH_SHORT).show();
-
                 } else {
                     // User did not enable Bluetooth or an error occurred
                     Log.d(TAG, "BT not enabled");
                     Toast.makeText(this, "Problem in BT Turning ON ", Toast.LENGTH_SHORT).show();
+                    setResult(6);
                     finish();
                 }
                 break;
@@ -419,11 +371,32 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
         }
     }
 
+    public void postHeartRate(String heart) {
+        if(mainApplication.getPrisonerId() == null) {
+            showMessage("无法获取服刑人员编号，心率数据无法上传");
+        }else {
+            HashMap<String, String> params = new HashMap<>(1);
+            params.put("prisonerId", mainApplication.getPrisonerId());
+            params.put("heartbeat", heart);
+            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                @Override
+                public void onReqSuccess(String result) {
+                    Log.i(TAG, result);
+                }
+
+                @Override
+                public void onReqFailed(String errorMsg) {
+                    Log.e(TAG, errorMsg);
+                }
+            });
+        }
+
+    }
+
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
 
     }
-
 
     private void showMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
@@ -431,18 +404,16 @@ public class BlueToothActivity extends Activity implements RadioGroup.OnCheckedC
 
     @Override
     public void onBackPressed() {
-//        if (mState == UART_PROFILE_CONNECTED) {
-//            Intent startMain = new Intent(Intent.ACTION_MAIN);
-//            startMain.addCategory(Intent.CATEGORY_HOME);
-//            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            startActivity(startMain);
-//            showMessage("nRFUART's running in background.\n             Disconnect to exit");
-//        }else {
-//            setResult(6);
-//            finish();
-//        }
-        setResult(6);
-        finish();
+        if (mState == UART_PROFILE_CONNECTED) {
+            Intent startMain = new Intent(Intent.ACTION_MAIN);
+            startMain.addCategory(Intent.CATEGORY_HOME);
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(startMain);
+            showMessage("nRFUART's running in background.\n             Disconnect to exit");
+        }else {
+            setResult(6);
+            finish();
+        }
 //        else {
 //            new AlertDialog.Builder(this)
 //                    .setIcon(android.R.drawable.ic_dialog_alert)
