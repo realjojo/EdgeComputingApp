@@ -1,10 +1,8 @@
-package com.edgecomputing.activity;
+package com.edgecomputing.utils;
 
 import android.app.Dialog;
 import android.content.Context;
 import android.support.annotation.Nullable;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 

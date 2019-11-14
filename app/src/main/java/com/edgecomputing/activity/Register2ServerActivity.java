@@ -91,7 +91,7 @@ public class Register2ServerActivity extends AppCompatActivity {
                     params.put("deviceType", deviceType);
                     params.put("deviceNo", deviceNo);
                     params.put("userId", deviceUserEt.getText().toString());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("dvcM/devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             Integer code = JSON.parseObject(result).getInteger("code");

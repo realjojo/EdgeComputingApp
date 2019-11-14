@@ -151,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
     private void loginRequest() {
         HashMap<String, String> pp = new HashMap<>(1);
         pp.put("deviceNo", mainApplication.getDeviceNo());
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("dvcM/devices/judgeDeviceNo", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/judgeDeviceNo", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 if(result.equals("true")){
@@ -162,7 +162,7 @@ public class LoginActivity extends AppCompatActivity {
                     params.put("userName", userNameEt.getText().toString());
                     params.put("prisonerId", prisonerIdEt.getText().toString());
                     params.put("password", pwdEt.getText().toString());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("usrM/users/login", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/login", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             if(JSON.parseObject(result).getInteger("code") == 200) {

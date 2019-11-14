@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/btn_select"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="Connect"
+            android:textSize="20dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_weight="0.31"
+        android:orientation="vertical" >
+
+        <RelativeLayout
+            android:id="@+id/RelativeLayout1"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_weight="4.11"
+            android:orientation="vertical" >
+
+            <EditText
+                android:id="@+id/sendText"
+                android:layout_width="102dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentLeft="true"
+                android:layout_toLeftOf="@+id/sendButton"
+                android:ems="10"
+                android:enabled="true"
+                android:fontFamily="1"
+                android:lines="1"
+                android:hint="请输入信息"
+                android:maxLength="20"
+                android:maxLines="1"
+                android:shadowRadius="1" />
+
+            <ListView
+                android:id="@+id/listMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/sendButton"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true" >
+            </ListView>
+
+            <Button
+                android:id="@+id/sendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:enabled="false"
+                android:text="发送"
+                android:textSize="20dp"/>
+
+        </RelativeLayout>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/RelativeLayout5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:layout_marginTop="2dp"
+        android:orientation="vertical" >
+        <!-- android:layout_alignParentLeft="true" -->
+        <TextView
+            android:id="@+id/deviceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_alignParentTop="true"
+            android:text="@string/device" />
+
+        <TextView
+            android:id="@+id/deviceName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="18dp"
+            android:layout_toRightOf="@+id/deviceLabel"
+            android:text="@string/no_device"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+        <!-- android:layout_marginLeft="18dp" -->
+        <TextView
+            android:id="@+id/rssival"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="50dp"
+            android:layout_alignParentTop="true"
+            android:text="_"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+    </RelativeLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/button_heart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="8dp"
+            android:text="获取心率值"
+            android:textSize="17dp" />
+
+        <Button
+            android:id="@+id/button_hight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_margin="3dp"
+            android:padding="8dp"
+            android:text="获取高度值"
+            android:textSize="17dp" />
+
+
+        <!-- 自动发送选择框 -->
+
+
+    </LinearLayout>
+
+</LinearLayout>

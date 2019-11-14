@@ -1,22 +1,19 @@
 package com.edgecomputing.activity;
 
-import android.Manifest;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.ActionBar;
-import android.telephony.TelephonyManager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -28,16 +25,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.MapView;
@@ -47,7 +38,6 @@ import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
-import com.amap.api.maps.model.MyLocationStyle;
 import com.amap.api.maps.model.Polyline;
 import com.amap.api.maps.model.PolylineOptions;
 import com.amap.api.maps.utils.SpatialRelationUtil;
@@ -62,25 +52,18 @@ import com.amap.api.services.route.RideRouteResult;
 import com.amap.api.services.route.RouteSearch;
 import com.amap.api.services.route.TMC;
 import com.amap.api.services.route.WalkRouteResult;
-import com.chaquo.python.Kwarg;
-import com.chaquo.python.PyObject;
-import com.chaquo.python.Python;
-import com.chaquo.python.android.AndroidPlatform;
 import com.edgecomputing.R;
 import com.edgecomputing.application.MainApplication;
-import com.edgecomputing.utils.AndroidWebSocketClient;
-import com.edgecomputing.utils.CommonUtil;
 import com.edgecomputing.utils.CpuMonitor;
-import com.edgecomputing.utils.EditTextClearTool;
 import com.edgecomputing.utils.MemoryMonitor;
+import com.edgecomputing.utils.MyTensorFlow;
 import com.edgecomputing.utils.OkHttpUtil;
+import com.edgecomputing.utils.WarnDialog;
 
-import org.java_websocket.enums.ReadyState;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -88,7 +71,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String battery;
     private ImageView userImage;
     private TextView userName, userId, logout;
-
     /**
      * map相关
      */
@@ -122,11 +104,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int totalCarNum = 3;
     private int curNum = 0;
     private Bundle savedInstanceState;
+
     private boolean STATUS = false;
     private boolean stopRunnable = false;
     private WarnDialog warnDialog;
     private MainApplication mainApplication;
     private boolean back = true;
+//    private IntentFilter intentFilter;
+    private BluetoothAdapter mBluetoothAdapter;
+//    private MyTensorFlow myTensorFlow = new MyTensorFlow(getAssets());
     private static final String TAG = "MainActivity";
 
     Handler handler = new Handler();
@@ -185,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View v) {
                 HashMap<String, String> params = new HashMap<>(1);
                 params.put("token", mainApplication.getToken());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("usrM/users/logout", OkHttpUtil.TYPE_DEL, params, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/logout", OkHttpUtil.TYPE_DEL, params, new OkHttpUtil.ReqCallBack<String>() {
 
                     @Override
                     public void onReqSuccess(String result) {
@@ -209,6 +195,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+        /**
+         * map初始化
+         */
         mMapView =  (MapView) findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
         if (aMap == null) {
@@ -309,15 +298,63 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         RouteSearch.DriveRouteQuery query = new RouteSearch.DriveRouteQuery(fromAndTo, 2, null, null, "");
         routeSearch.calculateDriveRouteAsyn(query);
 
+        /**
+         * 广播初始化
+         */
         receiver = new BatteryReceiver();
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
 
-//        initPython();
-//        callPythonCode();
-
-        Log.i(TAG, "INITMAINACTIVITY");
-        handler.postDelayed(runnable, 5000);
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(mBluetoothAdapter == null){
+            // 说明此设备不支持蓝牙操作
+        }
+        if(!mBluetoothAdapter.isEnabled()){
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 5);
+        }else {
+            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+            List<String> stringList = new ArrayList<>();
+            if(pairedDevices.size() > 0){
+                for(BluetoothDevice device : pairedDevices){
+                    if(device.getName().equals("手环")) { //todo
+                        Toast.makeText(this, "已连接手环", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("提示")
+                        .setMessage("是否与手环进行配对？")
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                stopRunnable = true;
+//                                if(receiver != null) {
+//                                    unregisterReceiver(receiver);
+//                                }
+                                Intent intent = new Intent();
+                                intent.setClass(MainActivity.this, BlueToothActivity.class);
+                                startActivityForResult(intent, 6);
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Toast.makeText(getApplicationContext(), "未连接手环，请开启蓝牙进行配对", Toast.LENGTH_SHORT).show();
+                                stopRunnable = true;
+//                                if(receiver != null) {
+//                                    unregisterReceiver(receiver);
+//                                }
+                            }
+                        });
+                builder.create().show();
+            }
+            //开启线程获取手机性能数据
+            handler.postDelayed(runnable, 5000);
+        }
+//        if(myTensorFlow.initTensorFlow()) {
+//            myTensorFlow.runTensorFlow();
+//        }
     }
 
     public void postDeviceInfo(String cpu, String mem) {
@@ -326,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         params.put("cpuUsageRate", cpu);
         params.put("memoryUsageRate", mem);
         params.put("dumpEnergyRate", battery);
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("dvcM/deviceRunInfo/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("deviceRunInfo/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, result);
@@ -350,31 +387,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(warnDialog != null) {
             warnDialog.dismiss();
         }
-    }
-
-    /**
-     * 初始化Python环境
-     */
-    public void initPython(){
-        if (! Python.isStarted()) {
-            Python.start(new AndroidPlatform(this));
-        }
-    }
-
-    /**
-     * 调用python代码
-     */
-    public void callPythonCode(){
-        Python py = Python.getInstance();
-        List<double[]> list = new ArrayList<>();
-        list.add(new double[]{22.0, 1.0, 0.0, 172.7, 76.7, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 2.0, 4.0, 0.0, 0.989, 0.0});
-        list.add(new double[]{28.0,2.0,0.0,175.3,90.7,0.0,1.0,1.0,2.0,1.0,0.0,10.0,13.0,2.0,0.897,1.0});
-        list.add(new double[]{29.0,2.0,0.0,177.8,88.0,2.0,3.0,2.0,2.0,1.0,0.0,5.0,8.0,0.0,0.776,1.0});
-        String filename = Environment.getDataDirectory().toString();
-        Log.i("path", filename);
-        // 调用hello.py模块中的greet函数，并传一个参数，等价用法：py.getModule("hello").get("greet").call("Android");
-//        PyObject obj = PyObject.fromJava();
-        py.getModule("model").callAttr("test", filename);
     }
 
     /**
@@ -747,8 +759,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // Handle the camera action
         } else if (id == R.id.nav_info) {
 
-        } else if (id == R.id.nav_slideshow) {
-
+        } else if (id == R.id.nav_bluetooth) {
+            stopRunnable = true;
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, BlueToothActivity.class);
+            startActivityForResult(intent, 7);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -787,6 +802,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }else if(resultCode == 4) {
             back = false;
             finish();
+        }else if(requestCode == 5) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("提示")
+                    .setMessage("是否与手环进行配对？")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            stopRunnable = true;
+                            Intent intent = new Intent();
+                            intent.setClass(MainActivity.this, BlueToothActivity.class);
+                            startActivityForResult(intent, 6);
+                        }
+                    })
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Toast.makeText(getApplicationContext(), "未连接手环，请开启蓝牙进行配对", Toast.LENGTH_SHORT).show();
+                            stopRunnable = true;
+                        }
+                    });
+            builder.create().show();
+            stopRunnable = true;
+            handler.postDelayed(runnable, 5000);
+        }else if(resultCode == 6 || resultCode == 7) {
+            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+            if(pairedDevices.size() > 0){
+                stopRunnable = true;
+                handler.postDelayed(runnable, 5000);
+            } else {
+                Toast.makeText(this, "未连接蓝牙设备", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

@@ -71,7 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
                 params.put("userIdCard", userIdCardEt.getText().toString());
                 params.put("password", pwdEt.getText().toString());
                 params.put("confirmPwd", confirmPwdEt.getText().toString());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("usrM/users/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
                         if(JSON.parseObject(result).getInteger("code") == 200) {
