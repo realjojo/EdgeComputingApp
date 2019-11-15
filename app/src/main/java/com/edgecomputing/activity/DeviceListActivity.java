@@ -60,6 +60,7 @@ import android.widget.Toast;
 import com.edgecomputing.R;
 import com.edgecomputing.adapter.BlueListAdapter;
 import com.edgecomputing.bean.BlueDevice;
+import com.edgecomputing.utils.OkHttpUtil;
 
 public class DeviceListActivity extends AppCompatActivity {
     private BluetoothAdapter mBluetoothAdapter;
@@ -77,6 +78,7 @@ public class DeviceListActivity extends AppCompatActivity {
     private Handler mHandler;
     private boolean mScanning;
     private RecyclerView newDevicesListView;
+    private BluetoothDevice mBlueDevice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,42 +137,38 @@ public class DeviceListActivity extends AppCompatActivity {
         deviceAdapter.setOnItemClickListener(new BlueListAdapter.onRecycleItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                BluetoothDevice device = deviceList.get(position);
-                showMessage("开始与" + device.getName() + "进行配对");
-                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//                BluetoothDevice device = deviceList.get(position);
+                mBlueDevice = deviceList.get(position);
+                HashMap<String, String> params = new HashMap<>(1);
+                params.put("braceletNo", mBlueDevice.getAddress());
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/braceletBind", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
+                    @Override
+                    public void onReqSuccess(String result) {
+                        if(result.equals("true")) {
+                            showMessage("开始与" + mBlueDevice.getName() + "进行配对");
+                            mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
-                Bundle b = new Bundle();
-                b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());
+                            Bundle b = new Bundle();
+                            b.putString(BluetoothDevice.EXTRA_DEVICE, mBlueDevice.getAddress());
 
-                Intent result = new Intent();
-                result.putExtras(b);
-                setResult(Activity.RESULT_OK, result);
-                finish();
-//                AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-//                builder.setTitle("提示")
-//                        .setMessage("是否与手环进行配对？")
-//                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                showMessage("开始与" + device.getName() + "进行配对");
-//                                mBluetoothAdapter.stopLeScan(mLeScanCallback);
-//
-//                                Bundle b = new Bundle();
-//                                b.putString(BluetoothDevice.EXTRA_DEVICE, deviceList.get(position).getAddress());
-//
-//                                Intent result = new Intent();
-//                                result.putExtras(b);
-//                                setResult(Activity.RESULT_OK, result);
-//                                finish();
-//                            }
-//                        })
-//                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                showMessage("未连接手环，请开启蓝牙进行配对");
-//                            }
-//                        });
-//                builder.create().show();
+                            Intent mIntent = new Intent();
+                            mIntent.putExtras(b);
+                            setResult(Activity.RESULT_OK, mIntent);
+                            finish();
+                        }else {
+                            Intent intent = new Intent();
+                            intent.setClass(DeviceListActivity.this, BraceletActivity.class);
+                            intent.putExtra("macAddress", mBlueDevice.getAddress());
+                            startActivityForResult(intent, 1);
+                        }
+                    }
+
+                    @Override
+                    public void onReqFailed(String errorMsg) {
+                        Log.e(TAG, errorMsg);
+                        Toast.makeText(getBaseContext(), "查询信息失败", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
         scanLeDevice(true);
@@ -231,6 +229,23 @@ public class DeviceListActivity extends AppCompatActivity {
         	blueDevices.add(new BlueDevice(device.getName(), device.getAddress(), device.getBondState()));
             mEmptyList.setVisibility(View.GONE);
             deviceAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 1) {
+            showMessage("开始与" + mBlueDevice.getName() + "进行配对");
+            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+
+            Bundle b = new Bundle();
+            b.putString(BluetoothDevice.EXTRA_DEVICE, mBlueDevice.getAddress());
+
+            Intent mIntent = new Intent();
+            mIntent.putExtras(b);
+            setResult(Activity.RESULT_OK, mIntent);
+            finish();
         }
     }
 

@@ -75,11 +75,11 @@ public class LoginActivity extends AppCompatActivity {
 
         EditTextClearTool.addClearListener(userNameEt,userNameClear);
         EditTextClearTool.addClearListener(pwdEt,pwdClear);
-        EditTextClearTool.addClearListener(prisonerIdEt, idClear);
+//        EditTextClearTool.addClearListener(prisonerIdEt, idClear);
 
         if(mainApplication.getUserName() != null) {
             userNameEt.setText(mainApplication.getUserName());
-            prisonerIdEt.setText(mainApplication.getPrisonerId());
+//            prisonerIdEt.setText(mainApplication.getPrisonerId());
             if(mainApplication.isRememberPwd()) {
                 rememberPwd.setChecked(true);
                 isRememberPwd = true;
@@ -150,10 +150,12 @@ public class LoginActivity extends AppCompatActivity {
 
     private void loginRequest() {
         HashMap<String, String> pp = new HashMap<>(1);
+        Log.i(TAG, mainApplication.getDeviceNo());
         pp.put("deviceNo", mainApplication.getDeviceNo());
         OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/judgeDeviceNo", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
+                Log.i(TAG, result);
                 if(result.equals("true")){
                     if(!mainApplication.isReg2Server()){
                         mainApplication.setReg2Server(true);
@@ -169,11 +171,11 @@ public class LoginActivity extends AppCompatActivity {
                                 JSONObject jsonObj = JSON.parseObject(result).getJSONObject("data");
                                 String token = jsonObj.getString("loginToken");
                                 String userName = jsonObj.getString("userName");
-                                String prisonerId = jsonObj.getString("prisonerId");
+//                                String prisonerId = jsonObj.getString("prisonerId");
                                 String userId = jsonObj.getString("userId");
                                 String idCard = jsonObj.getString("idCard");
                                 mainApplication.setLogin(true);
-                                mainApplication.setLoginUserInfo(userName, token, prisonerId, userId, idCard);
+                                mainApplication.setLoginUserInfo(userName, token, userId, idCard);
                                 if(isRememberPwd) {
                                     mainApplication.setPassword(pwdEt.getText().toString());
                                     mainApplication.setRememberPwd(true);
@@ -219,7 +221,7 @@ public class LoginActivity extends AppCompatActivity {
         Log.i(TAG, "onActivityResult(MainActivity)");
         if(resultCode == 1) {
             userNameEt.setText(data.getStringExtra("userName"));
-            prisonerIdEt.setText(data.getStringExtra("prisonerId"));
+//            prisonerIdEt.setText(data.getStringExtra("prisonerId"));
             pwdEt.setText(data.getStringExtra("password"));
         }else if(resultCode == 2){
 

@@ -125,7 +125,7 @@ public class Register2ServerActivity extends AppCompatActivity {
                 }
             }
         }else {
-            String dn = deviceNo.substring(0, 4) + "*******" + deviceNo.substring(10, 14);
+            String dn = deviceNo.substring(0, 4) + "********" + deviceNo.substring(11, 15);
             deviceNoTv.setText(dn);
         }
     }
@@ -142,7 +142,7 @@ public class Register2ServerActivity extends AppCompatActivity {
                     if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                         deviceNo = tm.getDeviceId();
                         if (deviceNo != null) {
-                            String dn = deviceNo.substring(0, 4) + "*******" + deviceNo.substring(10, 14);
+                            String dn = deviceNo.substring(0, 4) + "********" + deviceNo.substring(11, 15);
                             deviceNoTv.setText(dn);
                         }
                     }

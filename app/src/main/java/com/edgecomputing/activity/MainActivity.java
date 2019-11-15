@@ -230,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 else {
                     if (btnConnectDisconnect.getText().equals("Connect")){
                         //Connect button pressed, open DeviceListActivity class, with popup windows that scan for devices
+                        stopRunnable = true;
                         Intent newIntent = new Intent(MainActivity.this, DeviceListActivity.class);
                         startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
                         //Log.d(TAG, "寻找请求码:"+REQUEST_SELECT_DEVICE);

@@ -81,7 +81,7 @@ public class RegisterActivity extends AppCompatActivity {
                             String userId = jsonObj.getString("userId");
                             String idCard = jsonObj.getString("idCard");
                             MainApplication mainApplication = (MainApplication) getApplication();
-                            mainApplication.setLoginUserInfo(userName, "", "", userId, idCard);
+                            mainApplication.setLoginUserInfo(userName, "", "", idCard);
                             Intent intent = new Intent();
                             intent.setClass(RegisterActivity.this, MainActivity.class);
                             intent.putExtra("userName", userName);

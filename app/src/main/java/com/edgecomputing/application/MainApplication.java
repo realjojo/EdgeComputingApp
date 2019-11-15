@@ -100,9 +100,9 @@ public class MainApplication extends Application {
         return sharedPreferences.getBoolean("isRememberPwd", false);
     }
 
-    public void setLoginUserInfo(String userName, String token, String prisonerId, String userId, String idCard) {
+    public void setLoginUserInfo(String userName, String token, String userId, String idCard) {
         this.userName = userName;
-        this.prisonerId = prisonerId;
+//        this.prisonerId = prisonerId;
         this.token = token;
         this.userId = userId;
         this.idCard = idCard;
@@ -110,7 +110,7 @@ public class MainApplication extends Application {
         editor.putString("userName", userName);
         editor.putString("userId", userId);
         editor.putString("idCard", idCard);
-        editor.putString("prisonerId", prisonerId);
+//        editor.putString("prisonerId", prisonerId);
         editor.putString("token", token);
         editor.commit();
     }

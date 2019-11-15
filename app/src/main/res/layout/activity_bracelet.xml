@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_login"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/logoScreenBackground">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/ic_apple_watch" />
+
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="170dp"
+        android:text="手环信息绑定"
+        android:textColor="#000"
+        android:textSize="23sp"
+        android:typeface="monospace" />
+
+    <RelativeLayout
+        android:id="@+id/rl_macAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_title"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/rectangle_edittext">
+
+        <ImageView
+            android:id="@+id/iv_macAddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:paddingBottom="15dp"
+            android:paddingLeft="30dp"
+            android:paddingTop="15dp"
+            android:src="@mipmap/ic_ip" />
+
+        <View
+            android:id="@+id/viewAddress"
+            android:layout_width="1dip"
+            android:layout_height="20dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/iv_macAddress"
+            android:background="@color/colorCursor" />
+
+        <EditText
+            android:id="@+id/et_mac_address"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/viewAddress"
+            android:background="@null"
+            android:ems="19"
+            android:hint=" MAC地址"
+            android:textColorHint="@color/colorCursor"
+            android:textCursorDrawable="@drawable/color_cursor"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/iv_macAddressClear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            android:src="@mipmap/ic_cannotedit" />
+
+    </RelativeLayout>
+
+    <!--    <RelativeLayout-->
+    <!--        android:id="@+id/rl_prisonerId"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_below="@id/rl_userName"-->
+    <!--        android:layout_marginTop="1dp"-->
+    <!--        android:background="@drawable/rectangle_edittext">-->
+
+    <!--        <ImageView-->
+    <!--            android:id="@+id/iv_prisonerId"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_centerVertical="true"-->
+    <!--            android:paddingBottom="15dp"-->
+    <!--            android:paddingLeft="30dp"-->
+    <!--            android:paddingTop="15dp"-->
+    <!--            android:src="@mipmap/ic_prisoner_id" />-->
+
+    <!--        <View-->
+    <!--            android:id="@+id/viewId"-->
+    <!--            android:layout_width="1dip"-->
+    <!--            android:layout_height="20dp"-->
+    <!--            android:layout_centerVertical="true"-->
+    <!--            android:layout_marginLeft="10dp"-->
+    <!--            android:layout_toRightOf="@id/iv_prisonerId"-->
+    <!--            android:background="@color/colorCursor" />-->
+
+    <!--        <EditText-->
+    <!--            android:id="@+id/et_prisonerId"-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="30dp"-->
+    <!--            android:layout_centerVertical="true"-->
+    <!--            android:layout_marginLeft="10dp"-->
+    <!--            android:layout_toRightOf="@id/viewId"-->
+    <!--            android:background="@null"-->
+    <!--            android:drawablePadding="5dp"-->
+    <!--            android:ems="19"-->
+    <!--            android:hint=" 犯人ID"-->
+    <!--            android:textColorHint="@color/colorCursor"-->
+    <!--            android:textCursorDrawable="@drawable/color_cursor"-->
+    <!--            android:textSize="15sp" />-->
+
+    <!--        <ImageView-->
+    <!--            android:id="@+id/iv_idClear"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_alignParentRight="true"-->
+    <!--            android:layout_centerVertical="true"-->
+    <!--            android:layout_marginRight="20dp"-->
+    <!--            android:src="@mipmap/ic_backspace_grey600_24dp"-->
+    <!--            android:visibility="invisible" />-->
+
+    <!--    </RelativeLayout>-->
+
+    <RelativeLayout
+        android:id="@+id/rl_prisonerId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rl_macAddress"
+        android:layout_marginTop="1dp"
+        android:background="@drawable/rectangle_edittext">
+
+        <ImageView
+            android:id="@+id/iv_prisonerId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:paddingBottom="15dp"
+            android:paddingLeft="30dp"
+            android:paddingTop="15dp"
+            android:src="@mipmap/ic_prisoner_id" />
+
+        <View
+            android:id="@+id/viewPrisonerId"
+            android:layout_width="1dip"
+            android:layout_height="20dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/iv_prisonerId"
+            android:background="@color/colorCursor" />
+
+        <EditText
+            android:id="@+id/et_prisonerId"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:layout_toRightOf="@id/viewPrisonerId"
+            android:background="@null"
+            android:drawablePadding="5dp"
+            android:ems="19"
+            android:hint=" 服刑人员编号"
+            android:inputType="textPassword"
+            android:textColorHint="@color/colorCursor"
+            android:textCursorDrawable="@drawable/color_cursor"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/iv_prisonerIdClear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="20dp"
+            android:src="@mipmap/ic_backspace_grey600_24dp"
+            android:visibility="invisible" />
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_bindBracelet"
+        android:layout_width="340dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rl_prisonerId"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/round_corner_bg"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="确认绑定"
+        android:textColor="#fff"
+        android:textSize="18sp" />
+
+</RelativeLayout>
