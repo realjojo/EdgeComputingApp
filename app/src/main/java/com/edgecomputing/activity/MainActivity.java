@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private boolean STATUS = false;
     private boolean stopRunnable = false;
+    private boolean stopRunnable1 = false;
     private WarnDialog warnDialog;
     private MainApplication mainApplication;
     private boolean back = true;
@@ -100,6 +101,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             listAdapter.add("["+currentDateTimeString+"] Memory: "+ mem);
             listAdapter.add("["+currentDateTimeString+"] Battery: "+ battery);
             messageListView.smoothScrollToPosition(listAdapter.getCount() - 3);
+            if(!stopRunnable) {
+                handler.postDelayed(runnable, 20000);
+            }
+        }
+    };
+    Handler handler1 = new Handler();
+    Runnable runnable1 = new Runnable() {
+        @Override
+        public void run() {
             if (flag3) {
                 //EditText editText = (EditText) findViewById(R.id.sendText);
                 String message = "heart";
@@ -109,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     //send data to service
                     value = message.getBytes("UTF-8");
                     mService.writeRXCharacteristic(value);
+                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                     //Update the log with time stamp
                     listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
                     messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
@@ -119,8 +130,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } else {
                 showMessage("没有连接设备，无法获取心率值哦!");
             }
-            if(!stopRunnable) {
-                handler.postDelayed(runnable, 15000);
+            if(!stopRunnable1) {
+                handler1.postDelayed(runnable, 15000);
             }
         }
     };
@@ -230,14 +241,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 else {
                     if (btnConnectDisconnect.getText().equals("Connect")){
                         //Connect button pressed, open DeviceListActivity class, with popup windows that scan for devices
-                        stopRunnable = true;
+                        stopRunnable1 = true;
                         Intent newIntent = new Intent(MainActivity.this, DeviceListActivity.class);
                         startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
                         //Log.d(TAG, "寻找请求码:"+REQUEST_SELECT_DEVICE);
                     } else {
                         //Disconnect button pressed
-                        if (mDevice!=null)
-                        {
+                        if (mDevice!=null) {
                             mService.disconnect();
                         }
                     }
@@ -373,6 +383,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        stopRunnable1 = true;
                         String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_DISCONNECT_MSG");
                         btnConnectDisconnect.setText("Connect");
@@ -388,6 +399,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
                 mService.enableTXNotification();
+                stopRunnable1 = false;
+                handler1.postDelayed(runnable1, 15000);
             }
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
                 final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
@@ -398,7 +411,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             String text = new String(txValue, "UTF-8");
                             String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                             if(currentAction.equals("heart")) {
-                                postHeartRate(BaseOperations.ByteArrToHeartRate(txValue));
+                                checkPrisonerId(BaseOperations.ByteArrToHeartRate(txValue));
                                 listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHeartRate(txValue));
                             }else if(currentAction.equals("high")) {
                                 listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHex(txValue) + "  hpa");
@@ -428,26 +441,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return intentFilter;
     }
 
-    public void postHeartRate(String heart) {
+    public void checkPrisonerId(String heart) {
         if(mainApplication.getPrisonerId() == null) {
-            showMessage("无法获取服刑人员编号，心率数据无法上传");
+            if(mainApplication.getBraceletNo() == null) {
+                showMessage("无法获取手环mac地址，心率数据无法上传");
+            } else {
+                HashMap<String, String> pp = new HashMap<>(1);
+                pp.put("braceletNo", mainApplication.getBraceletNo());
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/prisonerId", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+                    @Override
+                    public void onReqSuccess(String result) {
+                        Log.i(TAG, result);
+                        if(result != null && !result.equals("")) {
+                            mainApplication.setPrisonerId(result);
+                            postHeartRate(heart);
+                        }
+                    }
+
+                    @Override
+                    public void onReqFailed(String errorMsg) {
+                        Log.e(TAG, errorMsg);
+                        showMessage("无法获取服刑人员编号，心率数据无法上传");
+                    }
+                });
+            }
         }else {
-            HashMap<String, String> params = new HashMap<>(1);
-            params.put("prisonerId", mainApplication.getPrisonerId());
-            params.put("heartbeat", heart);
-            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
-                @Override
-                public void onReqSuccess(String result) {
-                    Log.i(TAG, result);
-                }
-
-                @Override
-                public void onReqFailed(String errorMsg) {
-                    Log.e(TAG, errorMsg);
-                }
-            });
+            postHeartRate(heart);
         }
+    }
 
+    private void postHeartRate(String heart) {
+        HashMap<String, String> params = new HashMap<>(1);
+        params.put("prisonerId", mainApplication.getPrisonerId());
+        params.put("heartbeat", heart);
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+            @Override
+            public void onReqSuccess(String result) {
+                Log.i(TAG, result);
+                showMessage("心率数据上传成功");
+            }
+
+            @Override
+            public void onReqFailed(String errorMsg) {
+                Log.e(TAG, errorMsg);
+            }
+        });
     }
 
     private void showMessage(String msg) {
@@ -612,6 +650,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "   mserviceValue:" + mService);
                     ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - connecting");
                     Log.i(TAG, deviceAddress);
+//                    stopRunnable = true;
+//                    handler.postDelayed(runnable, 15000);
                     mService.connect(deviceAddress);
                 }
                 break;
@@ -649,7 +689,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             stopRunnable = true;
             handler.removeCallbacks(runnable);
-
+            stopRunnable1 = true;
+            handler1.removeCallbacks(runnable1);
             try {
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
             } catch (Exception ignore) {

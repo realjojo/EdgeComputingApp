@@ -20,6 +20,7 @@ public class MainApplication extends Application {
     private boolean isRememberPwd;
     private boolean isReg2Server;
     private String deviceNo;
+    private String braceletNo;
 
     private SharedPreferences sharedPreferences;
 
@@ -156,6 +157,17 @@ public class MainApplication extends Application {
         this.idCard = idCard;
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("idCard", idCard);
+        editor.commit();
+    }
+
+    public String getBraceletNo() {
+        return sharedPreferences.getString("bracelet", null);
+    }
+
+    public void setBraceletNo(String braceletNo) {
+        this.braceletNo = braceletNo;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("bracelet", braceletNo);
         editor.commit();
     }
 }

@@ -38,6 +38,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -59,7 +60,9 @@ import android.widget.Toast;
 
 import com.edgecomputing.R;
 import com.edgecomputing.adapter.BlueListAdapter;
+import com.edgecomputing.application.MainApplication;
 import com.edgecomputing.bean.BlueDevice;
+import com.edgecomputing.utils.LoadingDialog;
 import com.edgecomputing.utils.OkHttpUtil;
 
 public class DeviceListActivity extends AppCompatActivity {
@@ -67,6 +70,7 @@ public class DeviceListActivity extends AppCompatActivity {
 
    // private BluetoothAdapter mBtAdapter;
     private TextView mEmptyList;
+    private LoadingDialog loadingDialog;
     public static final String TAG = "DeviceListActivity";
     
     List<BluetoothDevice> deviceList;
@@ -89,6 +93,11 @@ public class DeviceListActivity extends AppCompatActivity {
 //        android.view.WindowManager.LayoutParams layoutParams = this.getWindow().getAttributes();
 //        layoutParams.gravity=Gravity.TOP;
 //        layoutParams.y = 200;
+        // 去除顶部标题栏
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null){
+            actionBar.hide();
+        }
         mHandler = new Handler();
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
@@ -145,6 +154,10 @@ public class DeviceListActivity extends AppCompatActivity {
                     @Override
                     public void onReqSuccess(String result) {
                         if(result.equals("true")) {
+                            MainApplication mainApplication = (MainApplication) getApplication();
+                            if(mainApplication.getBraceletNo() == null) {
+                                mainApplication.setBraceletNo(mBlueDevice.getAddress());
+                            }
                             showMessage("开始与" + mBlueDevice.getName() + "进行配对");
                             mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
@@ -184,15 +197,31 @@ public class DeviceListActivity extends AppCompatActivity {
 					mScanning = false;
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                     cancelButton.setText(R.string.scan);
+                    destroyDialog();
                 }
             }, SCAN_PERIOD);
             mScanning = true;
             mBluetoothAdapter.startLeScan(mLeScanCallback);
             cancelButton.setText(R.string.cancel);
+            showDialog();
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
             cancelButton.setText(R.string.scan);
+            destroyDialog();
+        }
+    }
+
+    public void showDialog() {
+        if(loadingDialog == null) {
+            loadingDialog = LoadingDialog.showDialog(this);
+        }
+        loadingDialog.show();
+    }
+
+    public void destroyDialog() {
+        if(loadingDialog != null) {
+            loadingDialog.dismiss();
         }
     }
 

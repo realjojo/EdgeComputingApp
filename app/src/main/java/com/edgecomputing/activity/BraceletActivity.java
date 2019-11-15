@@ -66,6 +66,9 @@ public class BraceletActivity extends AppCompatActivity {
                             Log.i(TAG, result);
                             if(result.equals("绑定成功")) {
                                 Toast.makeText(getBaseContext(), "手环绑定成功", Toast.LENGTH_SHORT).show();
+                                MainApplication mainApplication = (MainApplication) getApplication();
+                                mainApplication.setPrisonerId(prisonerIdEt.getText().toString());
+                                mainApplication.setBraceletNo(macAddressEt.getText().toString());
                                 setResult(1);
                                 finish();
                             }else {
