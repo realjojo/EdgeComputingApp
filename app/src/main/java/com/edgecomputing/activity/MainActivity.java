@@ -11,15 +11,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -37,9 +35,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.edgecomputing.R;
 import com.edgecomputing.application.MainApplication;
 import com.edgecomputing.utils.BaseOperations;
+import com.edgecomputing.utils.CommonUtil;
 import com.edgecomputing.utils.CpuMonitor;
 import com.edgecomputing.utils.MemoryMonitor;
 import com.edgecomputing.utils.OkHttpUtil;
@@ -50,7 +50,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -62,9 +61,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean STATUS = false;
     private boolean stopRunnable = false;
     private boolean stopRunnable1 = false;
+    private boolean stopMyRunnable = false;
+    private boolean reConnect = true;
+//    private boolean isConnectToServer = true;
     private WarnDialog warnDialog;
     private MainApplication mainApplication;
-    private boolean back = true;
+//    private boolean back = true;
 //    private MyTensorFlow myTensorFlow = new MyTensorFlow(getAssets());
 
     private static final int REQUEST_LOGIN = 1;
@@ -83,9 +85,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
     private ArrayAdapter<String> listAdapter;
-    private Button btnConnectDisconnect, btnSend, mbutton_height, mbutton_heart;
+    private Button btnConnectDisconnect, btnSend, mbutton_height, mbutton_heart, button_send;
     private EditText edtMessage;
     private String currentAction;
+    private String myDeviceAddress;
+//    private boolean isComplete = false;
+//    private boolean isPostHeartComplete = false;
+//    private String currentHeart;
 
     private static final String TAG = "MainActivity";
 
@@ -96,13 +102,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             String cpu = CpuMonitor.getCpuRate();
             String mem = MemoryMonitor.getMemoryRate(getApplicationContext());
             postDeviceInfo(cpu, mem);
-            String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-            listAdapter.add("["+currentDateTimeString+"] CPU: "+ cpu);
-            listAdapter.add("["+currentDateTimeString+"] Memory: "+ mem);
-            listAdapter.add("["+currentDateTimeString+"] Battery: "+ battery);
-            messageListView.smoothScrollToPosition(listAdapter.getCount() - 3);
             if(!stopRunnable) {
-                handler.postDelayed(runnable, 20000);
+                handler.postDelayed(runnable, 5000);
             }
         }
     };
@@ -110,8 +111,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Runnable runnable1 = new Runnable() {
         @Override
         public void run() {
-            if (flag3) {
-                //EditText editText = (EditText) findViewById(R.id.sendText);
+            if (!stopRunnable1 && flag3) {
+                String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                 String message = "heart";
                 currentAction = "heart";
                 byte[] value;
@@ -119,19 +120,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     //send data to service
                     value = message.getBytes("UTF-8");
                     mService.writeRXCharacteristic(value);
-                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                     //Update the log with time stamp
                     listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
                     messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                    edtMessage.setText("");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
             } else {
-                showMessage("没有连接设备，无法获取心率值哦!");
+                showMessage("没有连接设备，无法获取心率哦!");
             }
-            if(!stopRunnable1) {
-                handler1.postDelayed(runnable, 15000);
+        }
+    };
+
+    Handler testHandler = new Handler();
+    Runnable testRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!stopMyRunnable) {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/isConnectivity", OkHttpUtil.TYPE_GET, null, new OkHttpUtil.ReqCallBack<String>() {
+                    @Override
+                    public void onReqSuccess(String result) {
+                        Log.i(TAG, result);
+                        testHandler.postDelayed(testRunnable, 5000);
+                    }
+
+                    @Override
+                    public void onReqFailed(String errorMsg) {
+                        Log.e(TAG, errorMsg);
+                        stopRunnable = true;
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("["+currentDateTimeString+"] Error: "+ "can't connect server!");
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        getRiskValue();
+                    }
+                });
             }
         }
     };
@@ -206,7 +228,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
         //开启线程获取手机性能数据
-        handler.postDelayed(runnable, 15000);
+        handler.postDelayed(runnable, 5000);
+        testHandler.postDelayed(testRunnable, 5000);
     }
 
     private void initBTLayout() {
@@ -223,11 +246,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         messageListView.setAdapter(listAdapter);
         messageListView.setDivider(null);
         btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
-        mbutton_height = (Button) findViewById(R.id.button_hight);
-        mbutton_heart = (Button) findViewById(R.id.button_heart);
-        btnSend = (Button) findViewById(R.id.sendButton);
-        edtMessage = (EditText) findViewById(R.id.sendText);
+//        mbutton_height = (Button) findViewById(R.id.button_hight);
+//        mbutton_heart = (Button) findViewById(R.id.button_heart);
+//        btnSend = (Button) findViewById(R.id.sendButton);
+//        edtMessage = (EditText) findViewById(R.id.sendText);
+
+        button_send = (Button) findViewById(R.id.button_send);
         initService();
+
+        button_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+                String msg = CommonUtil.ReadFromFile(path + "/uartrw/uartrw.txt");
+                if(msg.equals("danger")) {
+                    showDialog("脚环告警");
+                }
+            }
+        });
 
         // Handler Disconnect & Connect button
         btnConnectDisconnect.setOnClickListener(new View.OnClickListener() {
@@ -242,11 +278,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if (btnConnectDisconnect.getText().equals("Connect")){
                         //Connect button pressed, open DeviceListActivity class, with popup windows that scan for devices
                         stopRunnable1 = true;
+                        reConnect = true;
                         Intent newIntent = new Intent(MainActivity.this, DeviceListActivity.class);
                         startActivityForResult(newIntent, REQUEST_SELECT_DEVICE);
                         //Log.d(TAG, "寻找请求码:"+REQUEST_SELECT_DEVICE);
                     } else {
                         //Disconnect button pressed
+                        reConnect = false;
                         if (mDevice!=null) {
                             mService.disconnect();
                         }
@@ -255,79 +293,78 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
         // Handler Send button
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText editText = (EditText) findViewById(R.id.sendText);
-                String message = editText.getText().toString();
-                byte[] value;
-                try {
-                    //send data to service
-                    value = message.getBytes("UTF-8");
-                    mService.writeRXCharacteristic(value);
-                    //Update the log with time stamp
-                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                    listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
-                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                    edtMessage.setText("");
-                } catch (UnsupportedEncodingException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
-        });
-        // Handler Send button
-        mbutton_height.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (flag3) {
-                    //EditText editText = (EditText) findViewById(R.id.sendText);
-                    String message = "high";
-                    currentAction = "high";
-                    byte[] value;
-                    try {
-                        //send data to service
-                        value = message.getBytes("UTF-8");
-                        mService.writeRXCharacteristic(value);
-                        //Update the log with time stamp
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
-                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                        edtMessage.setText("");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                }else {
-                    showMessage("没有连接设备，无法获取高度值哦!");
-                }
-            }
-        });
-        // Handler Send button
-        mbutton_heart.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (flag3) {
-                    //EditText editText = (EditText) findViewById(R.id.sendText);
-                    String message = "heart";
-                    currentAction = "heart";
-                    byte[] value;
-                    try {
-                        //send data to service
-                        value = message.getBytes("UTF-8");
-                        mService.writeRXCharacteristic(value);
-                        //Update the log with time stamp
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
-                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                        edtMessage.setText("");
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    showMessage("没有连接设备，无法获取心率值哦!");
-                }
-            }
-        });
+//        btnSend.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                EditText editText = (EditText) findViewById(R.id.sendText);
+//                String message = editText.getText().toString();
+//                byte[] value;
+//                try {
+//                    //send data to service
+//                    value = message.getBytes("UTF-8");
+//                    mService.writeRXCharacteristic(value);
+//                    //Update the log with time stamp
+//                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                    listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+//                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+//                    edtMessage.setText("");
+//                } catch (UnsupportedEncodingException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+//        // Handler Send button
+//        mbutton_height.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (flag3) {
+//                    //EditText editText = (EditText) findViewById(R.id.sendText);
+//                    String message = "high";
+//                    currentAction = "high";
+//                    byte[] value;
+//                    try {
+//                        //send data to service
+//                        value = message.getBytes("UTF-8");
+//                        mService.writeRXCharacteristic(value);
+//                        //Update the log with time stamp
+//                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                        listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+//                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+//                        edtMessage.setText("");
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    }
+//                }else {
+//                    showMessage("没有连接设备，无法获取高度值哦!");
+//                }
+//            }
+//        });
+//        // Handler Send button
+//        mbutton_heart.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (flag3) {
+//                    //EditText editText = (EditText) findViewById(R.id.sendText);
+//                    String message = "heart";
+//                    currentAction = "heart";
+//                    byte[] value;
+//                    try {
+//                        //send data to service
+//                        value = message.getBytes("UTF-8");
+//                        mService.writeRXCharacteristic(value);
+//                        //Update the log with time stamp
+//                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                        listAdapter.add("["+currentDateTimeString+"] TX: "+ message);
+//                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+//                        edtMessage.setText("");
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    }
+//                } else {
+//                    showMessage("没有连接设备，无法获取心率值哦!");
+//                }
+//            }
+//        });
 
 //        if(myTensorFlow.initTensorFlow()) {
 //            myTensorFlow.runTensorFlow();
@@ -369,8 +406,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_CONNECT_MSG");
                         btnConnectDisconnect.setText("Disconnect");
-                        edtMessage.setEnabled(true);
-                        btnSend.setEnabled(true);
+//                        edtMessage.setEnabled(true);
+//                        btnSend.setEnabled(true);
                         flag3 = true;
                         ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - ready");
                         listAdapter.add("["+currentDateTimeString+"] Connected to: "+ mDevice.getName());
@@ -384,15 +421,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void run() {
                         stopRunnable1 = true;
+                        handler1.removeCallbacks(runnable1);
+//                        handler2.removeCallbacks(runnable2);
                         String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_DISCONNECT_MSG");
                         btnConnectDisconnect.setText("Connect");
-                        edtMessage.setEnabled(false);
-                        btnSend.setEnabled(false);
+//                        edtMessage.setEnabled(false);
+//                        btnSend.setEnabled(false);
                         ((TextView) findViewById(R.id.deviceName)).setText("Not Connected");
                         listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
-                        mState = UART_PROFILE_DISCONNECTED;
-                        mService.close();
+                        mState = UART_PROFILE_DISCONNECTED; // todo：手环蓝牙断开重连
+                        if(reConnect) {
+                            mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(myDeviceAddress);
+                            Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "   mserviceValue:" + mService);
+                            ((TextView) findViewById(R.id.deviceName)).setText(mDevice.getName()+ " - connecting");
+                            Log.i(TAG, myDeviceAddress);
+                            mService.connect(myDeviceAddress);
+                        }else {
+                            mService.close();
+                        }
                         //setUiState();
                     }
                 });
@@ -400,7 +447,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (action.equals(UartService.ACTION_GATT_SERVICES_DISCOVERED)) {
                 mService.enableTXNotification();
                 stopRunnable1 = false;
-                handler1.postDelayed(runnable1, 15000);
+                handler1.postDelayed(runnable1, 5000);
+//                handler2.postDelayed(runnable2, 5000);
             }
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
                 final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
@@ -411,12 +459,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             String text = new String(txValue, "UTF-8");
                             String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                             if(currentAction.equals("heart")) {
-                                checkPrisonerId(BaseOperations.ByteArrToHeartRate(txValue));
+                                checkPrisonerId(BaseOperations.ByteArrToHeartRate(txValue), "0");
                                 listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHeartRate(txValue));
+                                messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                                handler1.postDelayed(runnable1, 5000);
                             }else if(currentAction.equals("high")) {
+//                                checkPrisonerId(currentHeart, BaseOperations.ByteArrToHex(txValue));
                                 listAdapter.add("["+currentDateTimeString+"] RX: " + BaseOperations.ByteArrToHex(txValue) + "  hpa");
+                                messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                                handler1.postDelayed(runnable1, 5000);
                             }
-                            messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                             Log.i("sendhand", "蓝牙发送手环数据:" + BaseOperations.ByteArrToHex(txValue));
                         } catch (Exception e) {
                             Log.e(TAG, e.toString());
@@ -441,7 +493,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return intentFilter;
     }
 
-    public void checkPrisonerId(String heart) {
+    private void checkPrisonerId(String heart, String height) {
         if(mainApplication.getPrisonerId() == null) {
             if(mainApplication.getBraceletNo() == null) {
                 showMessage("无法获取手环mac地址，心率数据无法上传");
@@ -453,39 +505,122 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onReqSuccess(String result) {
                         Log.i(TAG, result);
                         if(result != null && !result.equals("")) {
-                            mainApplication.setPrisonerId(result);
-                            postHeartRate(heart);
+                            String[] str = result.split(";");
+                            if(!str[0].equals("")) {
+                                mainApplication.setPrisonerId(str[0]);
+                                postHeartRate(heart, height);
+                            }
                         }
                     }
 
                     @Override
                     public void onReqFailed(String errorMsg) {
                         Log.e(TAG, errorMsg);
-                        showMessage("无法获取服刑人员编号，心率数据无法上传");
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法获取服刑人员编号");
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
                     }
                 });
             }
         }else {
-            postHeartRate(heart);
+            postHeartRate(heart, height);
         }
     }
 
-    private void postHeartRate(String heart) {
-        HashMap<String, String> params = new HashMap<>(1);
+    private void postHeartRate(String heart, String height) {
+        HashMap<String, String> params = new HashMap<>(3);
         params.put("prisonerId", mainApplication.getPrisonerId());
         params.put("heartbeat", heart);
+        params.put("height", height);
         OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
-                Log.i(TAG, result);
-                showMessage("心率数据上传成功");
+                Log.i(TAG, "心率和高度数据上传成功");
+                HashMap<String, String> pp = new HashMap<>(1);
+                pp.put("PrisonerId", mainApplication.getPrisonerId());
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/get", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+                    @Override
+                    public void onReqSuccess(String result) {
+                        Log.i(TAG, result);
+                        int risk = Integer.parseInt(JSON.parseObject(result).getString("riskValue"));
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("["+currentDateTimeString+"] Risk: "+ risk);
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                        if(risk >= 75) {
+                            showDialog("3级风险");
+                        }else if(risk >= 50) {
+                            showDialog("2级风险");
+                        }
+                    }
+
+                    @Override
+                    public void onReqFailed(String errorMsg) {
+                        Log.e(TAG, errorMsg);
+                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                        listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法获取风险值");
+                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                    }
+                });
             }
 
             @Override
             public void onReqFailed(String errorMsg) {
                 Log.e(TAG, errorMsg);
+                String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法上传心率值");
+                messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
             }
         });
+    }
+
+    private void runRisk(double[] array) {
+//        double[] array = {21,1,0,174.42525773195877,81.2,1,0,1,0,0,0,8,2,0,0.49,1};
+        String res = CommonUtil.getPredicationResult(array);
+        Log.i(TAG, res);
+        if(res == "2") {
+            showDialog("2级风险");
+        }else {
+            showDialog("3级风险");
+        }
+    }
+
+    private void getRiskValue() {
+        if(mainApplication.getPrisonerInfo() == null) {
+            HashMap<String, String> pp = new HashMap<>(1);
+            pp.put("braceletNo", mainApplication.getBraceletNo());
+            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/prisonerId", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+                @Override
+                public void onReqSuccess(String result) {
+                    Log.i(TAG, result);
+                    if(result != null && !result.equals("")) {
+                        String[] str = result.split(";");
+                        if(!str[1].equals("")) {
+                            mainApplication.setPrisonerInfo(str[1]);
+                            runRisk(parseString(str[1]));
+                        }
+                    }
+                }
+
+                @Override
+                public void onReqFailed(String errorMsg) {
+                    Log.e(TAG, errorMsg);
+                    String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                    listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法获取服刑人员个人属性特征");
+                    messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+                }
+            });
+        } else {
+            runRisk(parseString(mainApplication.getPrisonerInfo()));
+        }
+    }
+
+    private double[] parseString(String s) {
+        String[] strings = s.split(",");
+        double[] prisonerInfo = new double[strings.length];
+        for(int i=0; i<prisonerInfo.length; i++) {
+            prisonerInfo[i] = Double.parseDouble(strings[i]);
+        }
+        return prisonerInfo;
     }
 
     private void showMessage(String msg) {
@@ -502,18 +637,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, result);
+                String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                listAdapter.add("["+currentDateTimeString+"] CPU: "+ cpu);
+                listAdapter.add("["+currentDateTimeString+"] Memory: "+ mem);
+                listAdapter.add("["+currentDateTimeString+"] Battery: "+ battery);
+                messageListView.smoothScrollToPosition(listAdapter.getCount() - 3);
             }
 
             @Override
             public void onReqFailed(String errorMsg) {
                 Log.e(TAG, errorMsg);
+                stopRunnable = true;
+                String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+                listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法上传设备性能数据");
+                messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
             }
         });
     }
 
-    public void showDialog() {
+    public void showDialog(String msg) {
         if(warnDialog == null) {
-            warnDialog = WarnDialog.showDialog(this, "");
+            warnDialog = WarnDialog.showDialog(this, msg);
         }
         warnDialog.show();
     }
@@ -645,6 +789,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 //When the DeviceListActivity return, with the selected device address
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     String deviceAddress = data.getStringExtra(BluetoothDevice.EXTRA_DEVICE);
+                    myDeviceAddress = deviceAddress;
                     Log.d(TAG, "... onActivity.address=="+deviceAddress);
                     mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress);
                     Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "   mserviceValue:" + mService);
@@ -691,6 +836,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             handler.removeCallbacks(runnable);
             stopRunnable1 = true;
             handler1.removeCallbacks(runnable1);
+            stopMyRunnable = true;
+            testHandler.removeCallbacks(testRunnable);
             try {
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
             } catch (Exception ignore) {

@@ -29,6 +29,7 @@ public class BraceletActivity extends AppCompatActivity {
     private EditText macAddressEt, prisonerIdEt;
     private ImageView prisonerIdClear;
     private String macAddress;
+    private boolean isBind = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,7 @@ public class BraceletActivity extends AppCompatActivity {
                         public void onReqSuccess(String result) {
                             Log.i(TAG, result);
                             if(result.equals("绑定成功")) {
+                                isBind = true;
                                 Toast.makeText(getBaseContext(), "手环绑定成功", Toast.LENGTH_SHORT).show();
                                 MainApplication mainApplication = (MainApplication) getApplication();
                                 mainApplication.setPrisonerId(prisonerIdEt.getText().toString());
@@ -85,5 +87,17 @@ public class BraceletActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.i(TAG, "onBackPressed(BraceletActivity)");
+        if(!isBind) {
+            setResult(2);
+            finish();
+        }else {
+            setResult(1);
+            finish();
+        }
     }
 }

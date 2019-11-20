@@ -33,9 +33,7 @@ public class WarnDialog extends Dialog {
         dialog = new WarnDialog(context, R.style.WarnDialog);//dialog样式
         dialog.setContentView(R.layout.warn_dialog);//dialog布局文件
         tvText = dialog.findViewById(R.id.tvText);
-//        if (ValidationUtils.isNotEmpty(msg)) {
-//            tvText.setText(msg);
-//        }
+        tvText.setText(msg);
         ivProgress = dialog.findViewById(R.id.ivProgress);
         dialog.setCanceledOnTouchOutside(true);//点击外部允许关闭dialog
         return dialog;

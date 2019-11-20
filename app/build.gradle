@@ -9,7 +9,6 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
         ndk {
             abiFilters 'armeabi', 'arm64-v8a'
         }
@@ -45,6 +44,5 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:2.1.0'
     implementation 'com.alibaba:fastjson:1.1.64.android'
     implementation 'com.squareup.okhttp3:okhttp:3.14.1'
-    //    implementation files('libs/libandroid_tensorflow_inference_java.jar')
-    implementation 'org.apache.commons.io:commonsIO:2.5.0'
+    implementation files('libs/Locating.jar')
 }

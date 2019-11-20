@@ -148,6 +148,16 @@ public class DeviceListActivity extends AppCompatActivity {
             public void onItemClick(View v, int position) {
 //                BluetoothDevice device = deviceList.get(position);
                 mBlueDevice = deviceList.get(position);
+//                showMessage("开始与" + mBlueDevice.getName() + "进行配对");
+//                mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//
+//                Bundle b = new Bundle();
+//                b.putString(BluetoothDevice.EXTRA_DEVICE, mBlueDevice.getAddress());
+//
+//                Intent mIntent = new Intent();
+//                mIntent.putExtras(b);
+//                setResult(Activity.RESULT_OK, mIntent);
+//                finish();
                 HashMap<String, String> params = new HashMap<>(1);
                 params.put("braceletNo", mBlueDevice.getAddress());
                 OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/braceletBind", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
@@ -264,7 +274,7 @@ public class DeviceListActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 1) {
+        if(resultCode == 1) {
             showMessage("开始与" + mBlueDevice.getName() + "进行配对");
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
@@ -275,6 +285,8 @@ public class DeviceListActivity extends AppCompatActivity {
             mIntent.putExtras(b);
             setResult(Activity.RESULT_OK, mIntent);
             finish();
+        }else if(resultCode == 2) {
+            showMessage("手环未绑定，请先绑定再连接蓝牙");
         }
     }
 

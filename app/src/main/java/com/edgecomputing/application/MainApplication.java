@@ -21,6 +21,7 @@ public class MainApplication extends Application {
     private boolean isReg2Server;
     private String deviceNo;
     private String braceletNo;
+    private String prisonerInfo;
 
     private SharedPreferences sharedPreferences;
 
@@ -168,6 +169,17 @@ public class MainApplication extends Application {
         this.braceletNo = braceletNo;
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("bracelet", braceletNo);
+        editor.commit();
+    }
+
+    public String getPrisonerInfo() {
+        return sharedPreferences.getString("prisonerInfo", null);
+    }
+
+    public void setPrisonerInfo(String prisonerInfo) {
+        this.prisonerInfo = prisonerInfo;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("prisonerInfo", prisonerInfo);
         editor.commit();
     }
 }

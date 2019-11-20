@@ -44,6 +44,8 @@ import com.edgecomputing.utils.WarnDialog;
 import java.util.ArrayList;
 import java.util.List;
 
+import locating.locate;
+
 /**
  * @Author: jojo
  * @Date: Created on 2019/11/14 17:30
@@ -196,18 +198,24 @@ public class MapActivity extends AppCompatActivity {
         routeSearch.calculateDriveRouteAsyn(query);
     }
 
+    private void getGps() { //todo：map定位算法
+        locate locate1 = new locate();
+        double longitude = locate1.getLongitude();
+        double latitude = locate1.getLatitude();
+    }
+
     private void showMessage(String msg) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
-    public void showDialog() {
+    private void showDialog() {
         if(warnDialog == null) {
             warnDialog = WarnDialog.showDialog(this, "");
         }
         warnDialog.show();
     }
 
-    public void destroyDialog() {
+    private void destroyDialog() {
         if(warnDialog != null) {
             warnDialog.dismiss();
         }
@@ -554,12 +562,14 @@ public class MapActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy(MapActivity)");
-        for (int i = 0; i < smoothMarkerList.size(); i++){
-            if(smoothMarkerList.get(i) != null) {
-                smoothMarkerList.get(i).setMoveListener(null);
-                smoothMarkerList.get(i).destroy();
+        if(smoothMarkerList.size() > 0) {
+            for (int i = 0; i < smoothMarkerList.size(); i++){
+                if(smoothMarkerList.get(i) != null) {
+                    smoothMarkerList.get(i).setMoveListener(null);
+                    smoothMarkerList.get(i).destroy();
+                }
             }
-        }        // 销毁平滑移动marker
+        }
         mMapView.onDestroy();
     }
 
