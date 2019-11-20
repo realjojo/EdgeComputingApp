@@ -26,13 +26,13 @@
         android:clickable="true"
         android:onClick="showNextCarInfo"/>
 
-<!--    <Button-->
-<!--        android:id="@+id/map_get_heart_rate"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_toRightOf="@id/nextcarinfo"-->
-<!--        android:text="heart rate"-->
-<!--        android:clickable="true"-->
-<!--        android:onClick="getHeartRateOnMap"/>-->
+    <Button
+        android:id="@+id/map_get_gps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/nextcarinfo"
+        android:text="gps"
+        android:clickable="true"
+        android:onClick="getHeartRateOnMap"/>
 
 </RelativeLayout>

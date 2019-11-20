@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean STATUS = false;
     private boolean stopRunnable = false;
     private boolean stopRunnable1 = false;
-    private boolean stopMyRunnable = false;
+    private boolean stopTestRunnable = false;
     private boolean reConnect = true;
 //    private boolean isConnectToServer = true;
     private WarnDialog warnDialog;
@@ -71,7 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static final int REQUEST_LOGIN = 1;
     private static final int REQUEST_LOGOUT = 2;
-    private static final int REQUEST_MAP = 3;
+    private static final int RESULT_LOGOUT_FAIL = 3;
+    private static final int REQUEST_MAP = 4;
     private static final int REQUEST_SELECT_DEVICE = 11;
     private static final int REQUEST_ENABLE_BT = 12;
     private static final int UART_PROFILE_READY = 10;
@@ -131,12 +132,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     };
-
     Handler testHandler = new Handler();
     Runnable testRunnable = new Runnable() {
         @Override
         public void run() {
-            if (!stopMyRunnable) {
+            if (!stopTestRunnable) {
                 OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/isConnectivity", OkHttpUtil.TYPE_GET, null, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
@@ -163,16 +163,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate(MainActivity)");
         mainApplication = (MainApplication) getApplication();
-        if(!mainApplication.isLogin()) {
-            Intent intent = new Intent();
-            intent.setClass(MainActivity.this, LoginActivity.class);
-            startActivityForResult(intent, REQUEST_LOGIN);
-        } else {
+//        if(!mainApplication.isLogin()) {
+//            Intent intent = new Intent();
+//            intent.setClass(MainActivity.this, LoginActivity.class);
+//            startActivityForResult(intent, REQUEST_LOGIN);
+//        } else {
             STATUS = true;
             setContentView(R.layout.activity_main);
             initBase();
             initBTLayout();
-        }
+//        }
     }
 
     private void initBase() {
@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         mainApplication.setToken("");
                         mainApplication.setLogin(false);
                         stopRunnable = true;
+                        stopTestRunnable = true;
                         Intent intent = new Intent();
                         intent.setClass(MainActivity.this, LoginActivity.class);
                         intent.putExtra("logout", true);
@@ -228,8 +229,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
         //开启线程获取手机性能数据
-        handler.postDelayed(runnable, 5000);
-        testHandler.postDelayed(testRunnable, 5000);
+//        handler.postDelayed(runnable, 5000);
+//        testHandler.postDelayed(testRunnable, 5000);
     }
 
     private void initBTLayout() {
@@ -754,7 +755,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_info) {
 
         } else if (id == R.id.nav_map) {
-//            stopRunnable = true;
             Intent intent = new Intent();
             intent.setClass(MainActivity.this, MapActivity.class);
             startActivityForResult(intent, REQUEST_MAP);
@@ -769,7 +769,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.i(TAG, "onActivityResult(MainActivity)");
-        Log.d(TAG, "特殊设备程序运行到这里了："+requestCode);
+        Log.d(TAG, "特殊设备程序运行到这里了：" + requestCode);
         switch (requestCode) {
             case REQUEST_LOGIN:
                 setContentView(R.layout.activity_main);
@@ -778,8 +778,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 initBTLayout();
                 break;
             case REQUEST_LOGOUT:
-                stopRunnable = false;
-                handler.postDelayed(runnable, 15000);
+                if(resultCode == RESULT_LOGOUT_FAIL) {
+                    finish();
+                }else {
+                    stopRunnable = false;
+                    stopTestRunnable = false;
+                    handler.postDelayed(runnable, 5000);
+                    testHandler.postDelayed(testRunnable, 5000);
+                }
                 break;
             case REQUEST_MAP:
 //                stopRunnable = true;
@@ -836,7 +842,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             handler.removeCallbacks(runnable);
             stopRunnable1 = true;
             handler1.removeCallbacks(runnable1);
-            stopMyRunnable = true;
+            stopTestRunnable = true;
             testHandler.removeCallbacks(testRunnable);
             try {
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);

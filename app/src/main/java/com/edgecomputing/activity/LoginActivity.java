@@ -183,10 +183,10 @@ public class LoginActivity extends AppCompatActivity {
                                     mainApplication.setRememberPwd(false);
                                 }
                                 if(logout){
-                                    setResult(2);
+                                    setResult(2);  //返回主界面
                                     finish();
                                 }else {
-                                    setResult(1);
+                                    setResult(1);  //返回主界面
                                     finish();
                                 }
                             } else {
@@ -232,10 +232,10 @@ public class LoginActivity extends AppCompatActivity {
     public void onBackPressed() {
         Log.i(TAG, "onBackPressed(LoginActivity)");
         if(logout) {
-            setResult(4);
+            setResult(3); //退出APP
             finish();
         }else {
-            setResult(3);
+            //退出APP
             finish();
         }
     }
