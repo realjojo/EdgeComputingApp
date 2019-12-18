@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="10dp"
+        android:background="@color/white"
+        android:layout_marginTop="10dp">
+
+        <ImageView
+            android:id="@+id/prisoner_icon"
+            android:layout_centerHorizontal="true"
+            android:padding="2dp"
+            android:layout_width="76dp"
+            android:layout_height="100dp"
+            android:background="@drawable/prisoner_icon_background"
+            android:src="@mipmap/prisoner_1" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:background="@color/white"
+        android:divider="@drawable/divide_line"
+        android:orientation="vertical"
+        android:showDividers="middle">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="服刑人员编号" />
+
+            <TextView
+                android:id="@+id/prisoner_id"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04006306"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="姓名" />
+
+            <TextView
+                android:id="@+id/prisoner_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="周雷"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="性别" />
+
+            <TextView
+                android:id="@+id/prisoner_gender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="男"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="年龄" />
+
+            <TextView
+                android:id="@+id/prisoner_age"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="45"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="身高" />
+
+            <TextView
+                android:id="@+id/prisoner_height"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="165cm"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="体重" />
+
+            <TextView
+                android:id="@+id/prisoner_weight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="55kg"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="受教育水平" />
+
+            <TextView
+                android:id="@+id/prisoner_education"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="初中"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="所犯罪行" />
+
+            <TextView
+                android:id="@+id/prisoner_crime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="车祸逃逸"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="近期情况" />
+
+            <TextView
+                android:id="@+id/prisoner_comment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="近期丧偶"
+                android:layout_gravity="center" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

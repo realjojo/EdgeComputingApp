@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
@@ -24,6 +25,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.amap.api.maps.AMap;
 import com.amap.api.maps.CameraUpdateFactory;
@@ -51,9 +53,11 @@ import com.amap.api.services.route.WalkRouteResult;
 import com.edgecomputing.R;
 import com.edgecomputing.application.MainApplication;
 import com.edgecomputing.utils.LocationUtil;
+import com.edgecomputing.utils.OkHttpUtil;
 import com.edgecomputing.utils.WarnDialog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import locating.locate;
@@ -107,6 +111,8 @@ public class MapActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate(MapActivity)");
         setContentView(R.layout.activity_map);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("押解轨迹展示");
         mMapView =  (MapView) findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
         mainApplication = (MainApplication) getApplication();
@@ -118,7 +124,6 @@ public class MapActivity extends AppCompatActivity {
         if (aMap == null) {
             aMap = mMapView.getMap();
         }
-
         context = MapActivity.this;
         getGps = (Button) findViewById(R.id.map_get_gps);
         getGps.setOnClickListener(new View.OnClickListener() {
@@ -251,6 +256,24 @@ public class MapActivity extends AppCompatActivity {
         }
     }
 
+    public void postGPS(double longitude, double latitude) {
+        HashMap<String, String> params = new HashMap<>();
+        params.put("userId", mainApplication.getUserId());
+        params.put("longitude", String.valueOf(longitude));
+        params.put("latitude", String.valueOf(latitude));
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload2", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+            @Override
+            public void onReqSuccess(String result) {
+                Log.i(TAG, result);
+            }
+
+            @Override
+            public void onReqFailed(String errorMsg) {
+                Log.e(TAG, errorMsg);
+            }
+        });
+    }
+
     /**
      * 通过GPS获取定位信息
      */
@@ -262,6 +285,7 @@ public class MapActivity extends AppCompatActivity {
                 @Override
                 public void onSuccessLocation(Location location) {
                     if (location != null) {
+                        postGPS(location.getLongitude(), location.getLatitude());
                         Toast.makeText(getApplicationContext(), "gps onSuccessLocation location:  lat==" + location.getLatitude() + "     lng==" + location.getLongitude(), Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getApplicationContext(), "gps location is null", Toast.LENGTH_SHORT).show();
@@ -269,6 +293,7 @@ public class MapActivity extends AppCompatActivity {
                 }
             });
         } else {
+            postGPS(gps.getLongitude(), gps.getLatitude());
             Toast.makeText(this, "gps location: lat==" + gps.getLatitude() + "  lng==" + gps.getLongitude(), Toast.LENGTH_SHORT).show();
         }
     }
@@ -661,7 +686,7 @@ public class MapActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy(MapActivity)");
-        if(smoothMarkerList.size() > 0) {
+        if(smoothMarkerList != null && smoothMarkerList.size() > 0) {
             for (int i = 0; i < smoothMarkerList.size(); i++){
                 if(smoothMarkerList.get(i) != null) {
                     smoothMarkerList.get(i).setMoveListener(null);

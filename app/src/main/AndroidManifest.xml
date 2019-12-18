@@ -53,6 +53,8 @@
         <service android:name=".utils.UartService" />
         <activity android:name=".activity.MapActivity" />
         <activity android:name=".activity.BraceletActivity" />
+        <activity android:name=".activity.TaskActivity" />
+        <activity android:name=".activity.PrisonerActivity" />
     </application>
 
 </manifest>

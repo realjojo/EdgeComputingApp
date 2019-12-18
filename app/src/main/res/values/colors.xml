@@ -6,6 +6,7 @@
 
     <color name="white">#FFFFFF</color>
     <color name="logoScreenBackground">#F7F7F7</color>
+    <color name="background">#DCDCDC</color>
     <color name="colorCursor">#cccccc</color>
     <color name="divideLine">#A9A9A9</color>
     <color name="textColorBlue">#1296db</color>

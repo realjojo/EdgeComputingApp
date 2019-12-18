@@ -32,8 +32,8 @@ public class OkHttpUtil {
      * 请求接口根地址
      */
 //    private static final String SERVER_URL = "http://10.0.3.2:8089";
-//    private static final String SERVER_URL = "http://10.108.120.33:8089";
-    private static final String SERVER_URL = "http://192.168.1.115:8089";
+    private static final String SERVER_URL = "http://10.108.120.33:8089";
+//    private static final String SERVER_URL = "http://192.168.1.115:8089";
     /**
      * 单例引用
      */

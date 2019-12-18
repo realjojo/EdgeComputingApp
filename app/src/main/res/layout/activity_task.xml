@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:background="@color/white"
+        android:divider="@drawable/divide_line"
+        android:orientation="vertical"
+        android:showDividers="middle">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="任务编号" />
+
+            <TextView
+                android:id="@+id/task_no"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BJTJ1023001"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="车牌号" />
+
+            <TextView
+                android:id="@+id/task_car_no"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="京A89889"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="服刑人员编号" />
+
+            <TextView
+                android:id="@+id/task_prisoner_no"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="04006306"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="服刑人员姓名" />
+
+            <TextView
+                android:id="@+id/task_prisoner_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="周雷"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="民警编号" />
+
+            <TextView
+                android:id="@+id/task_police_no"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="130757"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="民警姓名" />
+
+            <TextView
+                android:id="@+id/task_police_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="张平"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="任务详情" />
+
+            <TextView
+                android:id="@+id/task_detail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="押解犯人从A监狱到B监狱"
+                android:layout_gravity="center" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textColor="@color/textColorBlack"
+                android:text="任务级别" />
+
+            <TextView
+                android:id="@+id/task_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1级"
+                android:layout_gravity="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

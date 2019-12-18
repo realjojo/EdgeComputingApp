@@ -43,6 +43,7 @@ import com.edgecomputing.utils.CommonUtil;
 import com.edgecomputing.utils.CpuMonitor;
 import com.edgecomputing.utils.MemoryMonitor;
 import com.edgecomputing.utils.OkHttpUtil;
+import com.edgecomputing.utils.PmmlUtil;
 import com.edgecomputing.utils.UartService;
 import com.edgecomputing.utils.WarnDialog;
 
@@ -53,10 +54,13 @@ import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private BatteryReceiver receiver = null;
-    private String battery;
+    private Toolbar toolbar;
+    private DrawerLayout drawer;
     private ImageView userImage;
     private TextView userName, userId, logout;
+
+    private BatteryReceiver receiver = null;
+    private String battery;
 
     private boolean STATUS = false;
     private boolean stopRunnable = false;
@@ -73,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int REQUEST_LOGOUT = 2;
     private static final int RESULT_LOGOUT_FAIL = 3;
     private static final int REQUEST_MAP = 4;
+    private static final int REQUEST_TASK = 5;
+    private static final int REQUEST_PRISONER = 6;
     private static final int REQUEST_SELECT_DEVICE = 11;
     private static final int REQUEST_ENABLE_BT = 12;
     private static final int UART_PROFILE_READY = 10;
@@ -163,23 +169,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate(MainActivity)");
         mainApplication = (MainApplication) getApplication();
-//        if(!mainApplication.isLogin()) {
-//            Intent intent = new Intent();
-//            intent.setClass(MainActivity.this, LoginActivity.class);
-//            startActivityForResult(intent, REQUEST_LOGIN);
-//        } else {
+        if(!mainApplication.isLogin()) {
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, LoginActivity.class);
+            startActivityForResult(intent, REQUEST_LOGIN);
+        } else {
             STATUS = true;
             setContentView(R.layout.activity_main);
             initBase();
             initBTLayout();
-//        }
+        }
     }
 
     private void initBase() {
         Log.i(TAG, "initBase(MainActivity)");
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -262,6 +268,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 String msg = CommonUtil.ReadFromFile(path + "/uartrw/uartrw.txt");
                 if(msg.equals("danger")) {
                     showDialog("脚环告警");
+                    HashMap<String, String> params = new HashMap<>();
+                    params.put("prisonerId", mainApplication.getPrisonerId());
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                        @Override
+                        public void onReqSuccess(String result) {
+                            Log.i(TAG, result);
+                        }
+
+                        @Override
+                        public void onReqFailed(String errorMsg) {
+                            Log.e(TAG, errorMsg);
+                        }
+                    });
                 }
             }
         });
@@ -751,16 +770,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
 
         if (id == R.id.nav_task) {
-            // Handle the camera action
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, TaskActivity.class);
+            startActivityForResult(intent, REQUEST_TASK);
         } else if (id == R.id.nav_info) {
-
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, PrisonerActivity.class);
+            startActivityForResult(intent, REQUEST_PRISONER);
         } else if (id == R.id.nav_map) {
             Intent intent = new Intent();
             intent.setClass(MainActivity.this, MapActivity.class);
             startActivityForResult(intent, REQUEST_MAP);
         }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

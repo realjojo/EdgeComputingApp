@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="none">
         <item
             android:id="@+id/nav_task"
             android:icon="@mipmap/task"
@@ -15,7 +15,7 @@
         <item
             android:id="@+id/nav_map"
             android:icon="@mipmap/ic_map"
-            android:title="轨迹展示" />
+            android:title="押解轨迹展示" />
         <!--<item-->
             <!--android:id="@+id/nav_manage"-->
             <!--android:icon="@drawable/ic_menu_manage"-->
