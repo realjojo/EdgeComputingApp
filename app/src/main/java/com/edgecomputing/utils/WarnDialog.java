@@ -3,6 +3,7 @@ package com.edgecomputing.utils;
 import android.app.Dialog;
 import android.content.Context;
 import android.support.annotation.Nullable;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,7 +16,7 @@ import com.edgecomputing.R;
 public class WarnDialog extends Dialog {
     private Context context;
     private static WarnDialog dialog;
-    private static ImageView ivProgress;
+    private static ImageView ivProgress, ivClose;
     private static TextView tvText;
 
     public WarnDialog(Context context) {
@@ -35,7 +36,9 @@ public class WarnDialog extends Dialog {
         tvText = dialog.findViewById(R.id.tvText);
         tvText.setText(msg);
         ivProgress = dialog.findViewById(R.id.ivProgress);
-        dialog.setCanceledOnTouchOutside(true);//点击外部允许关闭dialog
+        ivClose = dialog.findViewById(R.id.ivClose);
+        dialog.setCanceledOnTouchOutside(false);//点击外部不允许关闭dialog
+
         return dialog;
     }
 

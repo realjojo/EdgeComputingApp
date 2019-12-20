@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -35,7 +36,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
 import com.edgecomputing.R;
 import com.edgecomputing.application.MainApplication;
 import com.edgecomputing.utils.BaseOperations;
@@ -43,10 +43,10 @@ import com.edgecomputing.utils.CommonUtil;
 import com.edgecomputing.utils.CpuMonitor;
 import com.edgecomputing.utils.MemoryMonitor;
 import com.edgecomputing.utils.OkHttpUtil;
-import com.edgecomputing.utils.PmmlUtil;
 import com.edgecomputing.utils.UartService;
 import com.edgecomputing.utils.WarnDialog;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.util.Date;
@@ -96,9 +96,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private EditText edtMessage;
     private String currentAction;
     private String myDeviceAddress;
+    private boolean isVibrating = false;
 //    private boolean isComplete = false;
 //    private boolean isPostHeartComplete = false;
 //    private String currentHeart;
+
+    private Vibrator vibrator;
 
     private static final String TAG = "MainActivity";
 
@@ -106,6 +109,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Runnable runnable=new Runnable() {
         @Override
         public void run() {
+//            try {
+//                readFileWarn();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             String cpu = CpuMonitor.getCpuRate();
             String mem = MemoryMonitor.getMemoryRate(getApplicationContext());
             postDeviceInfo(cpu, mem);
@@ -201,6 +209,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //        userImage.setImageResource(R.mipmap.ic_logo);  // TODO: 用户头像
         userName.setText("姓名：" + mainApplication.getUserName());
         userId.setText("民警编号：" + mainApplication.getUserId());
+        vibrator = (Vibrator)this.getSystemService(this.VIBRATOR_SERVICE);
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -235,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
         //开启线程获取手机性能数据
-//        handler.postDelayed(runnable, 5000);
+        handler.postDelayed(runnable, 5000);
 //        testHandler.postDelayed(testRunnable, 5000);
     }
 
@@ -264,23 +273,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         button_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String path = Environment.getExternalStorageDirectory().getAbsolutePath();
-                String msg = CommonUtil.ReadFromFile(path + "/uartrw/uartrw.txt");
-                if(msg.equals("danger")) {
-                    showDialog("脚环告警");
-                    HashMap<String, String> params = new HashMap<>();
-                    params.put("prisonerId", mainApplication.getPrisonerId());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
-                        @Override
-                        public void onReqSuccess(String result) {
-                            Log.i(TAG, result);
-                        }
-
-                        @Override
-                        public void onReqFailed(String errorMsg) {
-                            Log.e(TAG, errorMsg);
-                        }
-                    });
+                try {
+                    readFileWarn();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -513,6 +509,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return intentFilter;
     }
 
+    private void readFileWarn() throws IOException {
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+        String msg = CommonUtil.ReadFromFile(path + "/uartrw/uartrw.txt");
+        if(msg.equals("danger")) {
+            showDialog("超距警告");
+            // 开启震动
+            isVibrating = true;
+//            VibrateUtil.vibrate(this, new long[]{1000, 2000, 3000, 4000}, 0);
+//            //关闭震动
+//            if(isVibrating) {//防止多次关闭抛出异常，这里加个参数判断一下
+//                isVibrating = false;
+//                VibrateUtil.vibrateCancle(this);
+////                destroyDialog();
+//            }
+            Vibrator vibrator = (Vibrator)this.getSystemService(this.VIBRATOR_SERVICE);
+            long[] patter = {1000, 1000};
+            vibrator.vibrate(patter, 0);
+//            HashMap<String, String> params = new HashMap<>();
+//            params.put("prisonerId", mainApplication.getPrisonerId());
+//            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+//                @Override
+//                public void onReqSuccess(String result) {
+//                    Log.i(TAG, result);
+//                }
+//
+//                @Override
+//                public void onReqFailed(String errorMsg) {
+//                    Log.e(TAG, errorMsg);
+//                }
+//            });
+        }
+    }
+
     private void checkPrisonerId(String heart, String height) {
         if(mainApplication.getPrisonerId() == null) {
             if(mainApplication.getBraceletNo() == null) {
@@ -556,31 +585,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, "心率和高度数据上传成功");
-                HashMap<String, String> pp = new HashMap<>(1);
-                pp.put("PrisonerId", mainApplication.getPrisonerId());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/get", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
-                    @Override
-                    public void onReqSuccess(String result) {
-                        Log.i(TAG, result);
-                        int risk = Integer.parseInt(JSON.parseObject(result).getString("riskValue"));
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        listAdapter.add("["+currentDateTimeString+"] Risk: "+ risk);
-                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                        if(risk >= 75) {
-                            showDialog("3级风险");
-                        }else if(risk >= 50) {
-                            showDialog("2级风险");
-                        }
-                    }
-
-                    @Override
-                    public void onReqFailed(String errorMsg) {
-                        Log.e(TAG, errorMsg);
-                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
-                        listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法获取风险值");
-                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
-                    }
-                });
+//                todo:读取风险值
+//                HashMap<String, String> pp = new HashMap<>(1);
+//                pp.put("PrisonerId", mainApplication.getPrisonerId());
+//                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/get", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+//                    @Override
+//                    public void onReqSuccess(String result) {
+//                        Log.i(TAG, result);
+//                        int risk = Integer.parseInt(JSON.parseObject(result).getString("riskValue"));
+//                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                        listAdapter.add("["+currentDateTimeString+"] Risk: "+ risk);
+//                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+//                        if(risk >= 75) {
+//                            showDialog("3级风险");
+//                        }else if(risk >= 50) {
+//                            showDialog("2级风险");
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onReqFailed(String errorMsg) {
+//                        Log.e(TAG, errorMsg);
+//                        String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
+//                        listAdapter.add("["+currentDateTimeString+"] Error: "+ "无法获取风险值");
+//                        messageListView.smoothScrollToPosition(listAdapter.getCount() - 1);
+//                    }
+//                });
             }
 
             @Override
@@ -679,12 +709,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(warnDialog == null) {
             warnDialog = WarnDialog.showDialog(this, msg);
         }
+        ImageView ivClose = warnDialog.findViewById(R.id.ivClose);
+        ivClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                destroyDialog();
+            }
+        });
         warnDialog.show();
+        long[] patter = {1000, 1000};
+        vibrator.vibrate(patter, 0);
     }
 
     public void destroyDialog() {
         if(warnDialog != null) {
             warnDialog.dismiss();
+            vibrator.cancel();
         }
     }
 
@@ -803,9 +843,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     finish();
                 }else {
                     stopRunnable = false;
-                    stopTestRunnable = false;
+//                    stopTestRunnable = false;
                     handler.postDelayed(runnable, 5000);
-                    testHandler.postDelayed(testRunnable, 5000);
+//                    testHandler.postDelayed(testRunnable, 5000);
                 }
                 break;
             case REQUEST_MAP:
@@ -863,8 +903,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             handler.removeCallbacks(runnable);
             stopRunnable1 = true;
             handler1.removeCallbacks(runnable1);
-            stopTestRunnable = true;
-            testHandler.removeCallbacks(testRunnable);
+//            stopTestRunnable = true;
+//            testHandler.removeCallbacks(testRunnable);
             try {
                 LocalBroadcastManager.getInstance(this).unregisterReceiver(UARTStatusChangeReceiver);
             } catch (Exception ignore) {

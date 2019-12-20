@@ -5,8 +5,8 @@
 
     <!-- 圆角 -->
     <corners
-        android:bottomLeftRadius="5dp"
-        android:bottomRightRadius="5dp"
-        android:topLeftRadius="5dp"
-        android:topRightRadius="5dp" /> <!-- 设置四个角的半径 -->
+        android:bottomLeftRadius="10dp"
+        android:bottomRightRadius="10dp"
+        android:topLeftRadius="10dp"
+        android:topRightRadius="10dp" /> <!-- 设置四个角的半径 -->
 </shape>

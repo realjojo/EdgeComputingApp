@@ -17,7 +17,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,32 +39,77 @@ public class CommonUtil {
      * filepath： 读取文件的路径 /mnt/sdcard/uartrw/uartrw.txt
      * over:	写入文件方式，true：追加新内容； false：覆盖原文件
      */
-    public static String ReadFromFile(String folderpath) {
+    public static String ReadFromFile(String folderpath) throws IOException {
         Log.i(TAG, "开始读取文件!");
         //声明流对象
-        FileInputStream fis = null;
-        try{
-            fis = new FileInputStream(folderpath);
-            InputStreamReader reader = new InputStreamReader(fis, "GBK");
-            //读取数据
-            BufferedReader br = new BufferedReader(reader);
-            String s = br.readLine();
-            System.out.println(br.readLine());
-            String[] str = s.split(" : ");
-            if(str[1].equals("AAEE0000FF")) {
+//        FileInputStream fis = null;
+//        try{
+//            fis = new FileInputStream(folderpath);
+//            InputStreamReader reader = new InputStreamReader(fis, "GBK");
+//            //读取数据
+//            BufferedReader br = new BufferedReader(reader);
+//            br.readLine();
+//            String s = br.readLine();
+            File file = new File(folderpath);
+            String s = readLastLine(file,null);
+            String[] str = s.split("]:");
+//            Log.i("aaa",str[1].trim());
+            if(str[1].trim().equals("AAEE0000FF")) {
                 return "danger";
             }else {
                 return "safe";
             }
-        }catch(Exception e){
-            e.printStackTrace();
-        }finally{
-            try{
-                //关闭流，释放资源
-                fis.close();
-            }catch(Exception e){}
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }finally{
+//            try{
+//                //关闭流，释放资源
+//                fis.close();
+//            }catch(Exception e){}
+//        }
+//        return "safe";
+    }
+
+    public static String readLastLine(File file, String charset) throws IOException {
+        if (!file.exists() || file.isDirectory() || !file.canRead()) {
+            return null;
         }
-        return "safe";
+        RandomAccessFile raf = null;
+        try {
+            raf = new RandomAccessFile(file, "r");
+            long len = raf.length();
+            if (len == 0L) {
+                return "";
+            } else {
+                long pos = len - 1;
+                while (pos > 0) {
+                    pos--;
+                    raf.seek(pos);
+                    if (raf.readByte() == '\n') {
+                        break;
+                    }
+                }
+                if (pos == 0) {
+                    raf.seek(0);
+                }
+                byte[] bytes = new byte[(int) (len - pos)];
+                raf.read(bytes);
+                if (charset == null) {
+                    return new String(bytes);
+                } else {
+                    return new String(bytes, charset);
+                }
+            }
+        } catch (FileNotFoundException e) {
+        } finally {
+            if (raf != null) {
+                try {
+                    raf.close();
+                } catch (Exception e2) {
+                }
+            }
+        }
+        return null;
     }
 
     /**
