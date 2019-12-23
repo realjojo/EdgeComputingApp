@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Runnable runnable=new Runnable() {
         @Override
         public void run() {
+//            todo:脚环告警
 //            try {
 //                readFileWarn();
 //            } catch (IOException e) {
@@ -206,10 +207,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         userName = headView.findViewById(R.id.user_name);
         userId = headView.findViewById(R.id.user_id);
         logout = headView.findViewById(R.id.logout);
-        //        userImage.setImageResource(R.mipmap.ic_logo);  // TODO: 用户头像
+        if(mainApplication.getUserName().equals("张平")){
+            userImage.setImageResource(R.mipmap.user_1);
+        }else if(mainApplication.getUserName().equals("宋小玲")){
+            userImage.setImageResource(R.mipmap.user_4);
+        }else if(mainApplication.getUserName().equals("马飞")) {
+            userImage.setImageResource(R.mipmap.user_2);
+        }else if(mainApplication.getUserName().equals("李建国")) {
+            userImage.setImageResource(R.mipmap.user_3);
+        }
         userName.setText("姓名：" + mainApplication.getUserName());
         userId.setText("民警编号：" + mainApplication.getUserId());
-        vibrator = (Vibrator)this.getSystemService(this.VIBRATOR_SERVICE);
+        vibrator = (Vibrator)this.getSystemService(VIBRATOR_SERVICE);
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -244,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
         //开启线程获取手机性能数据
-        handler.postDelayed(runnable, 5000);
+//        handler.postDelayed(runnable, 5000);
 //        testHandler.postDelayed(testRunnable, 5000);
     }
 
@@ -446,7 +455,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //                        btnSend.setEnabled(false);
                         ((TextView) findViewById(R.id.deviceName)).setText("Not Connected");
                         listAdapter.add("["+currentDateTimeString+"] Disconnected to: "+ mDevice.getName());
-                        mState = UART_PROFILE_DISCONNECTED; // todo：手环蓝牙断开重连
+                        mState = UART_PROFILE_DISCONNECTED;
+                        //手环蓝牙断开重连
                         if(reConnect) {
                             mDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(myDeviceAddress);
                             Log.d(TAG, "... onActivityResultdevice.address==" + mDevice + "   mserviceValue:" + mService);
@@ -514,31 +524,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String msg = CommonUtil.ReadFromFile(path + "/uartrw/uartrw.txt");
         if(msg.equals("danger")) {
             showDialog("超距警告");
-            // 开启震动
-            isVibrating = true;
-//            VibrateUtil.vibrate(this, new long[]{1000, 2000, 3000, 4000}, 0);
-//            //关闭震动
-//            if(isVibrating) {//防止多次关闭抛出异常，这里加个参数判断一下
-//                isVibrating = false;
-//                VibrateUtil.vibrateCancle(this);
-////                destroyDialog();
-//            }
-            Vibrator vibrator = (Vibrator)this.getSystemService(this.VIBRATOR_SERVICE);
-            long[] patter = {1000, 1000};
-            vibrator.vibrate(patter, 0);
-//            HashMap<String, String> params = new HashMap<>();
-//            params.put("prisonerId", mainApplication.getPrisonerId());
-//            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
-//                @Override
-//                public void onReqSuccess(String result) {
-//                    Log.i(TAG, result);
-//                }
-//
-//                @Override
-//                public void onReqFailed(String errorMsg) {
-//                    Log.e(TAG, errorMsg);
-//                }
-//            });
+            // 脚环超距告警上传后台
+            HashMap<String, String> params = new HashMap<>();
+            params.put("prisonerId", mainApplication.getPrisonerId());
+            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                @Override
+                public void onReqSuccess(String result) {
+                    Log.i(TAG, result);
+                }
+
+                @Override
+                public void onReqFailed(String errorMsg) {
+                    Log.e(TAG, errorMsg);
+                }
+            });
         }
     }
 
@@ -717,6 +716,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
         warnDialog.show();
+        // 开启震动
+        isVibrating = true;
         long[] patter = {1000, 1000};
         vibrator.vibrate(patter, 0);
     }
@@ -724,7 +725,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void destroyDialog() {
         if(warnDialog != null) {
             warnDialog.dismiss();
-            vibrator.cancel();
+            if(isVibrating) {
+                isVibrating = false;
+                vibrator.cancel();
+            }
         }
     }
 
