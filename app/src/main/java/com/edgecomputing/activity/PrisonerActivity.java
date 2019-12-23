@@ -36,7 +36,7 @@ public class PrisonerActivity extends AppCompatActivity {
         Log.i(TAG, "onCreate(PrisonerActivity)");
         setContentView(R.layout.activity_prisoner);
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("押解任务详情");
+        actionBar.setTitle("服刑人员信息");
         init();
     }
 
