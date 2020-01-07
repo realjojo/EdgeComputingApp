@@ -50,10 +50,10 @@
     <string name="Readdummy">D Read</string>
     <string name="removeBond">Remove Bond</string>
     <string name="paired">paired</string>
-    <string name="popup_title">Quit Gattcallback UART?</string>
-    <string name="popup_message">Do you want to quit this Application?</string>
-    <string name="popup_yes">YES</string>
-    <string name="popup_no">NO</string>
+    <string name="popup_title">提示</string>
+    <string name="popup_message">确认退出应用吗?</string>
+    <string name="popup_yes">确认</string>
+    <string name="popup_no">取消</string>
     <string name="ble_not_supported">Bluetooth Low Energy not supported</string>
     <string name="scan">Scan</string>
     <string name="cancel">Cancel</string>
