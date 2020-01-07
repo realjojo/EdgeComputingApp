@@ -84,6 +84,9 @@ public class DeviceListActivity extends AppCompatActivity {
     private RecyclerView newDevicesListView;
     private BluetoothDevice mBlueDevice;
 
+    private String selectServerAddress;
+    private MainApplication mainApplication;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +101,11 @@ public class DeviceListActivity extends AppCompatActivity {
         if(actionBar != null){
             actionBar.hide();
         }
+        mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         mHandler = new Handler();
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
@@ -105,7 +113,6 @@ public class DeviceListActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             finish();
         }
-
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
         final BluetoothManager bluetoothManager =
@@ -160,7 +167,7 @@ public class DeviceListActivity extends AppCompatActivity {
 //                finish();
                 HashMap<String, String> params = new HashMap<>(1);
                 params.put("braceletNo", mBlueDevice.getAddress());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/braceletBind", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "devices/braceletBind", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
                         if(result.equals("true")) {

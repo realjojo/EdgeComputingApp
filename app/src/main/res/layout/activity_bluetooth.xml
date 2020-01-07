@@ -5,7 +5,7 @@
     android:orientation="vertical" >
 
     <LinearLayout
-        android:id="@+id/linearLayout3"
+        android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:layout_weight="0.31"
@@ -62,7 +62,7 @@
         android:background="@color/divideLine" />
 
     <RelativeLayout
-        android:id="@+id/RelativeLayout5"
+        android:id="@+id/RelativeLayout2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="2dp"
@@ -103,6 +103,39 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="选择当前服务器：" />
+
+        <CheckBox
+            android:id="@+id/cb_server1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="实验室" />
+
+        <CheckBox
+            android:id="@+id/cb_server2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="公控机" />
+
+        <Button
+            android:id="@+id/btn_select_server"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="确认" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
         <Button
             android:id="@+id/btn_connect"
             android:layout_width="wrap_content"
@@ -111,6 +144,16 @@
             android:background="@color/colorPrimary"
             android:textColor="@color/white"
             android:text="Connect"
+            android:textSize="17dp" />
+
+        <Button
+            android:id="@+id/btn_get_cpu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@color/colorLoginButton"
+            android:textColor="@color/white"
+            android:text="开启手机监控"
             android:textSize="17dp" />
 
         <Button

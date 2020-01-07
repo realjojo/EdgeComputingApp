@@ -72,11 +72,15 @@ public class UartService extends Service {
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
                 MainApplication mainApplication = (MainApplication) getApplication();
+                String selectServerAddress = mainApplication.getServerAddress();
+                if(selectServerAddress == null) {
+                    selectServerAddress = "http://10.109.246.55:8089";
+                }
                 if(mainApplication.getDeviceNo() != null && remoteDevice != null) {
                     HashMap<String, String> params = new HashMap<>();
                     params.put("deviceNo", mainApplication.getDeviceNo());
                     params.put("braceletNo", remoteDevice.getAddress());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/updateDeviceConnectivityStatus", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "devices/updateDeviceConnectivityStatus", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             Log.i(TAG, result);

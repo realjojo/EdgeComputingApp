@@ -45,6 +45,7 @@ public class LoginActivity extends AppCompatActivity {
     private String deviceNo;
     private TelephonyManager tm;
     private boolean logout;
+    private String selectServerAddress;
     private static final String TAG = "LoginActivity";
 
     @Override
@@ -59,6 +60,10 @@ public class LoginActivity extends AppCompatActivity {
         mainApplication = (MainApplication) getApplication();
         Intent intent = getIntent();
         logout = intent.getBooleanExtra("logout", false);
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         init();
     }
 
@@ -152,7 +157,7 @@ public class LoginActivity extends AppCompatActivity {
         HashMap<String, String> pp = new HashMap<>(1);
         Log.i(TAG, mainApplication.getDeviceNo());
         pp.put("deviceNo", mainApplication.getDeviceNo());
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/judgeDeviceNo", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "devices/judgeDeviceNo", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, result);
@@ -164,7 +169,7 @@ public class LoginActivity extends AppCompatActivity {
                     params.put("userName", userNameEt.getText().toString());
 //                    params.put("prisonerId", prisonerIdEt.getText().toString());
                     params.put("password", pwdEt.getText().toString());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/login", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "users/login", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             if(JSON.parseObject(result).getInteger("code") == 200) {

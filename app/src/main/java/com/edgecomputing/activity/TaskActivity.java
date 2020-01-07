@@ -24,6 +24,8 @@ public class TaskActivity extends AppCompatActivity {
     private static final String TAG = "TaskActivity";
 
     private TextView tv_task, tv_car, tv_prisonerNo, tv_prisonerName, tv_policeNo, tv_policeName, tv_taskDetail, tv_taskLevel;
+    private String selectServerAddress;
+    private MainApplication mainApplication;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,11 @@ public class TaskActivity extends AppCompatActivity {
         setContentView(R.layout.activity_task);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle("押解任务详情");
+        mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         init();
     }
 
@@ -49,7 +56,7 @@ public class TaskActivity extends AppCompatActivity {
     private void getTaskInfo() {
         HashMap<String, String> params = new HashMap<>();
 
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("task/get", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "task/get", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
 

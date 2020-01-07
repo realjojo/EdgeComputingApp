@@ -29,7 +29,10 @@ public class BraceletActivity extends AppCompatActivity {
     private EditText macAddressEt, prisonerIdEt;
     private ImageView prisonerIdClear;
     private String macAddress;
+    private String selectServerAddress;
     private boolean isBind = false;
+
+    private MainApplication mainApplication;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +45,11 @@ public class BraceletActivity extends AppCompatActivity {
         }
         Intent intent = getIntent();
         macAddress = intent.getStringExtra("macAddress");
+        mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         init();
     }
 
@@ -61,7 +69,7 @@ public class BraceletActivity extends AppCompatActivity {
                     HashMap<String, String> pp = new HashMap<>(2);
                     pp.put("braceletNo", macAddressEt.getText().toString());
                     pp.put("prisonerId", prisonerIdEt.getText().toString());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/braceletBindPrisoner", OkHttpUtil.TYPE_POST_FORM, pp, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "devices/braceletBindPrisoner", OkHttpUtil.TYPE_POST_FORM, pp, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             Log.i(TAG, result);

@@ -35,6 +35,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -48,6 +50,7 @@ import com.edgecomputing.utils.CommonUtil;
 import com.edgecomputing.utils.CpuMonitor;
 import com.edgecomputing.utils.MemoryMonitor;
 import com.edgecomputing.utils.OkHttpUtil;
+import com.edgecomputing.bean.ServerAddress;
 import com.edgecomputing.utils.UartService;
 import com.edgecomputing.utils.WarnDialog;
 
@@ -98,7 +101,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private BluetoothAdapter mBtAdapter = null;
     private ListView messageListView;
     private ArrayAdapter<String> listAdapter;
-    private Button btnConnectDisconnect, btnSend, mbutton_height, mbutton_heart, button_send;
+    private Button btnConnectDisconnect, btnSend, mbutton_height, mbutton_heart, button_send, btnGetCpu;
+    private CheckBox server1, server2;
+    private Button btnSelectServer;
+    private String selectServerUrl;
     private EditText edtMessage;
     private String currentAction;
     private String myDeviceAddress;
@@ -166,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         public void run() {
             if (!stopTestRunnable) {
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/isConnectivity", OkHttpUtil.TYPE_GET, null, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "devices/isConnectivity", OkHttpUtil.TYPE_GET, null, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
                         Log.i(TAG, result);
@@ -239,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View v) {
                 HashMap<String, String> params = new HashMap<>(1);
                 params.put("token", mainApplication.getToken());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/logout", OkHttpUtil.TYPE_DEL, params, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "users/logout", OkHttpUtil.TYPE_DEL, params, new OkHttpUtil.ReqCallBack<String>() {
 
                     @Override
                     public void onReqSuccess(String result) {
@@ -268,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
         //开启线程获取手机性能数据
-        handler.postDelayed(runnable, 5000);
+//        handler.postDelayed(runnable, 5000);
 //        testHandler.postDelayed(testRunnable, 5000);
     }
 
@@ -291,8 +297,77 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        btnSend = (Button) findViewById(R.id.sendButton);
 //        edtMessage = (EditText) findViewById(R.id.sendText);
 
+        server1 = (CheckBox) findViewById(R.id.cb_server1);
+        server2 = (CheckBox) findViewById(R.id.cb_server2);
+        btnSelectServer = (Button) findViewById(R.id.btn_select_server);
         button_send = (Button) findViewById(R.id.btn_warn_open);
+        btnGetCpu = (Button) findViewById(R.id.btn_get_cpu);
         initService();
+
+        server1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    server2.setChecked(false);
+                }
+            }
+        });
+
+        server2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+                    server1.setChecked(false);
+                }
+            }
+        });
+
+        btnSelectServer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(server2.isChecked()) {
+                    selectServerUrl = ServerAddress.SERVER_URL2.getServer_url();
+                }else {
+                    selectServerUrl = ServerAddress.SERVER_URL1.getServer_url();
+                }
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("提示")
+                        .setMessage("当前服务器地址为：\n" + selectServerUrl + "\n" + "确认开启相关服务吗？")
+                        .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                mainApplication.setServerAddress(selectServerUrl);
+                            }
+                        })
+                        .setNegativeButton("取消", null)
+                        .show();
+            }
+        });
+
+        btnGetCpu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(btnGetCpu.getText().equals("开启手机监控")) {
+                    new AlertDialog.Builder(MainActivity.this)
+                            .setTitle("提示")
+                            .setMessage("确认开启手持机性能监测吗？")
+                            .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    btnGetCpu.setText("关闭手机监控");
+                                    //开启线程获取手机性能数据
+                                    handler.postDelayed(runnable, 5000);
+                                }
+                            })
+                            .setNegativeButton("取消", null)
+                            .show();
+                } else {
+                    btnGetCpu.setText("开启手机监控");
+                    stopRunnable = true;
+//                    handler.removeCallbacks(runnable);
+                }
+            }
+        });
 
         button_send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -318,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else {
                     button_send.setText("开启脚环告警");
                     stopVervelRunnable = true;
-                    vervelHandler.removeCallbacks(vervelRunnable);
+//                    vervelHandler.removeCallbacks(vervelRunnable);
                 }
             }
         });
@@ -479,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void run() {
                         stopRunnable1 = true;
-                        handler1.removeCallbacks(runnable1);
+//                        handler1.removeCallbacks(runnable1);
                         String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_DISCONNECT_MSG");
                         btnConnectDisconnect.setText("Connect");
@@ -506,7 +581,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mService.enableTXNotification();
                 stopRunnable1 = false;
                 handler1.postDelayed(runnable1, 5000);
-//                handler2.postDelayed(runnable2, 5000);
             }
             if (action.equals(UartService.ACTION_DATA_AVAILABLE)) {
                 final byte[] txValue = intent.getByteArrayExtra(UartService.EXTRA_DATA);
@@ -559,7 +633,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // 脚环超距告警上传后台
             HashMap<String, String> params = new HashMap<>();
             params.put("prisonerId", mainApplication.getPrisonerId());
-            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+            OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "prisonerData/outrange", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                 @Override
                 public void onReqSuccess(String result) {
                     Log.i(TAG, result);
@@ -580,7 +654,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             } else {
                 HashMap<String, String> pp = new HashMap<>(1);
                 pp.put("braceletNo", mainApplication.getBraceletNo());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/prisonerId", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "devices/prisonerId", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
                         Log.i(TAG, result);
@@ -612,14 +686,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         params.put("prisonerId", mainApplication.getPrisonerId());
         params.put("heartbeat", heart);
         params.put("height", height);
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "prisonerData/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, "心率和高度数据上传成功");
 //                todo:读取风险值
 //                HashMap<String, String> pp = new HashMap<>(1);
 //                pp.put("PrisonerId", mainApplication.getPrisonerId());
-//                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/get", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+//                OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "prisonerData/get", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
 //                    @Override
 //                    public void onReqSuccess(String result) {
 //                        Log.i(TAG, result);
@@ -669,7 +743,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(mainApplication.getPrisonerInfo() == null) {
             HashMap<String, String> pp = new HashMap<>(1);
             pp.put("braceletNo", mainApplication.getBraceletNo());
-            OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/prisonerId", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
+            OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "devices/prisonerId", OkHttpUtil.TYPE_GET, pp, new OkHttpUtil.ReqCallBack<String>() {
                 @Override
                 public void onReqSuccess(String result) {
                     Log.i(TAG, result);
@@ -714,7 +788,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         params.put("cpuUsageRate", cpu);
         params.put("memoryUsageRate", mem);
         params.put("dumpEnergyRate", battery);
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("deviceRunInfo/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerUrl, "deviceRunInfo/upload", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, result);
@@ -947,6 +1021,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if(receiver != null) {
                 unregisterReceiver(receiver);
             }
+//            if(btnGetCpu.getText().equals("关闭手机监控")) {
+//                stopRunnable = true;
+//                handler.removeCallbacks(runnable);
+//            }
+//            if(btnConnectDisconnect.getText().equals("Disconnect")) {
+//                stopRunnable1 = true;
+//                handler1.removeCallbacks(runnable1);
+//            }
+//            if(button_send.getText().equals("关闭脚环告警")) {
+//                stopVervelRunnable = true;
+//                vervelHandler.removeCallbacks(vervelRunnable);
+//            }
             stopRunnable = true;
             handler.removeCallbacks(runnable);
             stopRunnable1 = true;

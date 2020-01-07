@@ -27,6 +27,7 @@ public class PrisonerActivity extends AppCompatActivity {
     private TextView tv_prisonerId, tv_prisonerName, tv_prisonerGender, tv_prisonerAge,
             tv_prisonerEdu, tv_prisonerHeight, tv_prisonerWeight, tv_prisonerComment, tv_prisonerCrime;
     private ImageView iv_prisonerIcon;
+    private String selectServerAddress;
 
     private MainApplication mainApplication;
 
@@ -53,6 +54,10 @@ public class PrisonerActivity extends AppCompatActivity {
         iv_prisonerIcon = (ImageView) findViewById(R.id.prisoner_icon);
 
         mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         if(mainApplication.getPrisonerId() != null) {
             getPrisonerInfo(mainApplication.getPrisonerId());
         } else {
@@ -63,7 +68,7 @@ public class PrisonerActivity extends AppCompatActivity {
     private void getPrisonerInfo(String prid) {
         HashMap<String, String> params = new HashMap<>();
         params.put("prisonerId", prid);
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisoners/get", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "prisoners/get", OkHttpUtil.TYPE_GET, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 JSONObject jsonObj = JSON.parseObject(result);

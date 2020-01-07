@@ -34,7 +34,7 @@ public class OkHttpUtil {
 //    private static final String SERVER_URL = "http://10.0.3.2:8089";
 //    private static final String SERVER_URL = "http://10.108.120.33:8089";
 //    private static final String SERVER_URL = "http://192.168.1.35:8089";
-    private static final String SERVER_URL = "http://10.109.246.55:8089";
+//    private static final String SERVER_URL = "http://10.109.246.55:8089";
     /**
      * 单例引用
      */
@@ -90,9 +90,9 @@ public class OkHttpUtil {
      * 获取服务器ip
      * @return
      */
-    public String getServerUrl() {
-        return SERVER_URL;
-    }
+//    public String getServerUrl() {
+//        return SERVER_URL;
+//    }
 
     /**
      * okHttp同步请求统一入口
@@ -100,16 +100,16 @@ public class OkHttpUtil {
      * @param requestType 请求类型
      * @param paramsMap   请求参数
      */
-    public void requestSyn(String actionUrl, int requestType, HashMap<String, String> paramsMap) {
+    public void requestSyn(String SERVER_URL, String actionUrl, int requestType, HashMap<String, String> paramsMap) {
         switch (requestType) {
             case TYPE_GET:
-                requestGetBySyn(actionUrl, paramsMap);
+                requestGetBySyn(SERVER_URL, actionUrl, paramsMap);
                 break;
             case TYPE_POST_JSON:
-                requestPostBySyn(actionUrl, paramsMap);
+                requestPostBySyn(SERVER_URL, actionUrl, paramsMap);
                 break;
             case TYPE_POST_FORM:
-                requestPostBySynWithForm(actionUrl, paramsMap);
+                requestPostBySynWithForm(SERVER_URL, actionUrl, paramsMap);
                 break;
             default:
                 break;
@@ -121,7 +121,7 @@ public class OkHttpUtil {
      * @param actionUrl 接口地址
      * @param paramsMap 请求参数
      */
-    private void requestGetBySyn(String actionUrl, HashMap<String, String> paramsMap) {
+    private void requestGetBySyn(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap) {
         StringBuilder tempParams = new StringBuilder();
         try {
             //处理参数
@@ -153,7 +153,7 @@ public class OkHttpUtil {
      * @param actionUrl 接口地址
      * @param paramsMap 请求参数
      */
-    private void requestPostBySyn(String actionUrl, HashMap<String, String> paramsMap) {
+    private void requestPostBySyn(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap) {
         try {
             //处理参数
             StringBuilder tempParams = new StringBuilder();
@@ -192,7 +192,7 @@ public class OkHttpUtil {
      * @param actionUrl 接口地址
      * @param paramsMap 请求参数
      */
-    private void requestPostBySynWithForm(String actionUrl, HashMap<String, String> paramsMap) {
+    private void requestPostBySynWithForm(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap) {
         try {
             //创建一个FormBody.Builder
             FormBody.Builder builder = new FormBody.Builder();
@@ -226,23 +226,23 @@ public class OkHttpUtil {
      * @param callBack    请求返回数据回调
      * @param <T>         数据泛型
      **/
-    public <T> Call requestAsyn(String actionUrl, int requestType, HashMap<String, String> paramsMap, ReqCallBack<T> callBack) {
+    public <T> Call requestAsyn(String SERVER_URL, String actionUrl, int requestType, HashMap<String, String> paramsMap, ReqCallBack<T> callBack) {
         Call call = null;
         switch (requestType) {
             case TYPE_GET:
-                call = requestGetByAsyn(actionUrl, paramsMap, callBack);
+                call = requestGetByAsyn(SERVER_URL, actionUrl, paramsMap, callBack);
                 break;
             case TYPE_POST_JSON:
-                call = requestPostByAsyn(actionUrl, paramsMap, callBack);
+                call = requestPostByAsyn(SERVER_URL, actionUrl, paramsMap, callBack);
                 break;
             case TYPE_POST_FORM:
-                call = requestPostByAsynWithForm(actionUrl, paramsMap, callBack);
+                call = requestPostByAsynWithForm(SERVER_URL, actionUrl, paramsMap, callBack);
                 break;
             case TYPE_PUT:
-                call = requestPutByAsyn(actionUrl, paramsMap, callBack);
+                call = requestPutByAsyn(SERVER_URL, actionUrl, paramsMap, callBack);
                 break;
             case TYPE_DEL:
-                call = requestDelByAsyn(actionUrl, paramsMap, callBack);
+                call = requestDelByAsyn(SERVER_URL, actionUrl, paramsMap, callBack);
                 break;
             default:
                 break;
@@ -258,7 +258,7 @@ public class OkHttpUtil {
      * @param <T>       数据泛型
      * @return
      */
-    private <T> Call requestGetByAsyn(String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
+    private <T> Call requestGetByAsyn(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
         StringBuilder tempParams = new StringBuilder();
         try {
             int pos = 0;
@@ -308,7 +308,7 @@ public class OkHttpUtil {
      * @param <T>       数据泛型
      * @return
      */
-    private <T> Call requestPostByAsyn(String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
+    private <T> Call requestPostByAsyn(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
         try {
             StringBuilder tempParams = new StringBuilder();
             int pos = 0;
@@ -357,7 +357,7 @@ public class OkHttpUtil {
      * @param <T>       数据泛型
      * @return
      */
-    private <T> Call requestPostByAsynWithForm(String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
+    private <T> Call requestPostByAsynWithForm(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
         try {
             FormBody.Builder builder = new FormBody.Builder();
             for (String key : paramsMap.keySet()) {
@@ -400,7 +400,7 @@ public class OkHttpUtil {
      * @param <T>       数据泛型
      * @return
      */
-    private <T> Call requestPutByAsyn(String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
+    private <T> Call requestPutByAsyn(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
         try {
             FormBody.Builder builder = new FormBody.Builder();
             for (String key : paramsMap.keySet()) {
@@ -443,7 +443,7 @@ public class OkHttpUtil {
      * @param <T>       数据泛型
      * @return
      */
-    private <T> Call requestDelByAsyn(String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
+    private <T> Call requestDelByAsyn(String SERVER_URL, String actionUrl, HashMap<String, String> paramsMap, final ReqCallBack<T> callBack) {
         try {
             StringBuilder tempParams = new StringBuilder();
             int pos = 0;

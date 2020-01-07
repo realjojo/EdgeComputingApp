@@ -23,6 +23,8 @@ public class MainApplication extends Application {
     private String braceletNo;
     private String prisonerInfo;
 
+    private String serverAddress;
+
     private SharedPreferences sharedPreferences;
 
     @Override
@@ -180,6 +182,17 @@ public class MainApplication extends Application {
         this.prisonerInfo = prisonerInfo;
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("prisonerInfo", prisonerInfo);
+        editor.commit();
+    }
+
+    public String getServerAddress() {
+        return sharedPreferences.getString("serverAddress", "http://10.109.246.55:8089");
+    }
+
+    public void setServerAddress(String serverAddress) {
+        this.serverAddress = serverAddress;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("serverAddress", serverAddress);
         editor.commit();
     }
 }

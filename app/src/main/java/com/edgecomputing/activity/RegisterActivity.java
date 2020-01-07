@@ -29,6 +29,9 @@ public class RegisterActivity extends AppCompatActivity {
     private Button registerBtn;
     private EditText userNameEt, pwdEt, confirmPwdEt, userIdEt, userIdCardEt;
     private ImageView userNameClear, pwdClear, confirmPwdClear, userIdClear, userIdCardClear;
+    private String selectServerAddress;
+    private MainApplication mainApplication;
+
     private static final String TAG = "RegisterActivity";
 
     @Override
@@ -39,6 +42,11 @@ public class RegisterActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.hide();
+        }
+        mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
         }
         init();
     }
@@ -71,7 +79,7 @@ public class RegisterActivity extends AppCompatActivity {
                 params.put("userIdCard", userIdCardEt.getText().toString());
                 params.put("password", pwdEt.getText().toString());
                 params.put("confirmPwd", confirmPwdEt.getText().toString());
-                OkHttpUtil.getInstance(getBaseContext()).requestAsyn("users/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "users/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                     @Override
                     public void onReqSuccess(String result) {
                         if(JSON.parseObject(result).getInteger("code") == 200) {

@@ -98,6 +98,7 @@ public class MapActivity extends AppCompatActivity {
 
     private WarnDialog warnDialog;
     private MainApplication mainApplication;
+    private String selectServerAddress;
     private static final String TAG = "MapActivity";
 
     @Override
@@ -110,6 +111,10 @@ public class MapActivity extends AppCompatActivity {
         mMapView =  (MapView) findViewById(R.id.map);
         mMapView.onCreate(savedInstanceState);
         mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         init();
     }
 
@@ -255,7 +260,7 @@ public class MapActivity extends AppCompatActivity {
         params.put("userId", mainApplication.getUserId());
         params.put("longitude", String.valueOf(longitude));
         params.put("latitude", String.valueOf(latitude));
-        OkHttpUtil.getInstance(getBaseContext()).requestAsyn("prisonerData/upload2", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+        OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "prisonerData/upload2", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
             @Override
             public void onReqSuccess(String result) {
                 Log.i(TAG, result);

@@ -41,6 +41,7 @@ public class Register2ServerActivity extends AppCompatActivity {
     private CheckBox checkBox;
     private TelephonyManager tm;
     private String deviceType, deviceNo;
+    private String selectServerAddress;
 
     private MainApplication mainApplication;
     private static final String TAG = "Register2ServerActivity";
@@ -55,6 +56,10 @@ public class Register2ServerActivity extends AppCompatActivity {
             actionBar.hide();
         }
         mainApplication = (MainApplication) getApplication();
+        selectServerAddress = mainApplication.getServerAddress();
+        if(selectServerAddress == null) {
+            selectServerAddress = "http://10.109.246.55:8089";
+        }
         init();
     }
 
@@ -91,7 +96,7 @@ public class Register2ServerActivity extends AppCompatActivity {
                     params.put("deviceType", deviceType);
                     params.put("deviceNo", deviceNo);
                     params.put("userId", deviceUserEt.getText().toString());
-                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn("devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
+                    OkHttpUtil.getInstance(getBaseContext()).requestAsyn(selectServerAddress, "devices/register", OkHttpUtil.TYPE_POST_FORM, params, new OkHttpUtil.ReqCallBack<String>() {
                         @Override
                         public void onReqSuccess(String result) {
                             Integer code = JSON.parseObject(result).getInteger("code");
