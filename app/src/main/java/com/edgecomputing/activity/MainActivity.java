@@ -1,5 +1,6 @@
 package com.edgecomputing.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,12 +11,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -66,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private boolean stopRunnable = false;
     private boolean stopRunnable1 = false;
     private boolean stopTestRunnable = false;
+    private boolean stopVervelRunnable = false;
     private boolean reConnect = true;
 //    private boolean isConnectToServer = true;
     private WarnDialog warnDialog;
@@ -109,12 +115,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Runnable runnable=new Runnable() {
         @Override
         public void run() {
-//            todo:脚环告警
-//            try {
-//                readFileWarn();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
             String cpu = CpuMonitor.getCpuRate();
             String mem = MemoryMonitor.getMemoryRate(getApplicationContext());
             postDeviceInfo(cpu, mem);
@@ -144,6 +144,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             } else {
                 showMessage("没有连接设备，无法获取心率哦!");
+            }
+        }
+    };
+    Handler vervelHandler = new Handler();
+    Runnable vervelRunnable=new Runnable() {
+        @Override
+        public void run() {
+            try {
+                readFileWarn();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(!stopVervelRunnable) {
+                vervelHandler.postDelayed(vervelRunnable, 1000);
             }
         }
     };
@@ -213,9 +227,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             userImage.setImageResource(R.mipmap.user_4);
         }else if(mainApplication.getUserName().equals("马飞")) {
             userImage.setImageResource(R.mipmap.user_2);
-        }else if(mainApplication.getUserName().equals("李建国")) {
-            userImage.setImageResource(R.mipmap.user_3);
         }
+//        else if(mainApplication.getUserName().equals("李建国")) {
+//            userImage.setImageResource(R.mipmap.user_3);
+//        }
         userName.setText("姓名：" + mainApplication.getUserName());
         userId.setText("民警编号：" + mainApplication.getUserId());
         vibrator = (Vibrator)this.getSystemService(VIBRATOR_SERVICE);
@@ -253,7 +268,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(receiver, intentFilter);
         //开启线程获取手机性能数据
-//        handler.postDelayed(runnable, 5000);
+        handler.postDelayed(runnable, 5000);
 //        testHandler.postDelayed(testRunnable, 5000);
     }
 
@@ -270,22 +285,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         listAdapter = new ArrayAdapter<String>(this, R.layout.message_detail);
         messageListView.setAdapter(listAdapter);
         messageListView.setDivider(null);
-        btnConnectDisconnect = (Button) findViewById(R.id.btn_select);
+        btnConnectDisconnect = (Button) findViewById(R.id.btn_connect);
 //        mbutton_height = (Button) findViewById(R.id.button_hight);
 //        mbutton_heart = (Button) findViewById(R.id.button_heart);
 //        btnSend = (Button) findViewById(R.id.sendButton);
 //        edtMessage = (EditText) findViewById(R.id.sendText);
 
-        button_send = (Button) findViewById(R.id.button_send);
+        button_send = (Button) findViewById(R.id.btn_warn_open);
         initService();
 
         button_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                try {
-                    readFileWarn();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if(button_send.getText().equals("开启脚环告警")) {
+                    if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    }else {
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("提示")
+                                .setMessage("确认开启脚环告警功能吗？")
+                                .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        button_send.setText("关闭脚环告警");
+                                        stopVervelRunnable = false;
+                                        vervelHandler.post(vervelRunnable);
+                                    }
+                                })
+                                .setNegativeButton("取消", null)
+                                .show();
+                    }
+                } else {
+                    button_send.setText("开启脚环告警");
+                    stopVervelRunnable = true;
+                    vervelHandler.removeCallbacks(vervelRunnable);
                 }
             }
         });
@@ -447,7 +480,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void run() {
                         stopRunnable1 = true;
                         handler1.removeCallbacks(runnable1);
-//                        handler2.removeCallbacks(runnable2);
                         String currentDateTimeString = DateFormat.getTimeInstance().format(new Date());
                         Log.d(TAG, "UART_DISCONNECT_MSG");
                         btnConnectDisconnect.setText("Connect");
@@ -755,6 +787,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //    }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    //如果没有获取权限，那么可以提示用户去设置界面--->应用权限开启权限
+                    Toast.makeText(getApplicationContext(), "获取权限失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         Log.i(TAG, "onBackPressed(MainActivity)");
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -772,7 +817,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             showMessage("nRFUART's running in background.\n             Disconnect to exit");
         }else {
             new AlertDialog.Builder(this)
-                    .setIcon(android.R.drawable.ic_dialog_alert)
                     .setTitle(R.string.popup_title)
                     .setMessage(R.string.popup_message)
                     .setPositiveButton(R.string.popup_yes, new DialogInterface.OnClickListener() {
@@ -907,6 +951,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             handler.removeCallbacks(runnable);
             stopRunnable1 = true;
             handler1.removeCallbacks(runnable1);
+            stopVervelRunnable = true;
+            vervelHandler.removeCallbacks(vervelRunnable);
 //            stopTestRunnable = true;
 //            testHandler.removeCallbacks(testRunnable);
             try {

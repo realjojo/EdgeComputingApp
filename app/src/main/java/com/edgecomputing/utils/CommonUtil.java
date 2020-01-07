@@ -1,11 +1,14 @@
 package com.edgecomputing.utils;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.Log;
 import android.view.View;
@@ -13,15 +16,15 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 
-import java.io.BufferedReader;
+import com.edgecomputing.activity.LoginActivity;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
-import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -50,15 +53,27 @@ public class CommonUtil {
 //            BufferedReader br = new BufferedReader(reader);
 //            br.readLine();
 //            String s = br.readLine();
-            File file = new File(folderpath);
-            String s = readLastLine(file,null);
+        File file = new File(folderpath);
+        String s = readLastLine(file,null);
+        if(s != null) {
             String[] str = s.split("]:");
-//            Log.i("aaa",str[1].trim());
             if(str[1].trim().equals("AAEE0000FF")) {
-                return "danger";
-            }else {
+                Calendar c = Calendar.getInstance();
+                int curMinute = c.get(Calendar.SECOND);
+                String[] recordTime = str[0].split(":");
+//                记录插入时间在当前时间的一秒钟之内，报警
+                if(curMinute-1 <= Integer.parseInt(recordTime[2])) {
+                    return "danger";
+                }else {
+//                否则，记录是之前已报警的记录，不报警
+                    return "safe";
+                }
+            } else {
                 return "safe";
             }
+        } else {
+            return "safe";
+        }
 //        }catch(Exception e){
 //            e.printStackTrace();
 //        }finally{
@@ -101,11 +116,13 @@ public class CommonUtil {
                 }
             }
         } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } finally {
             if (raf != null) {
                 try {
                     raf.close();
                 } catch (Exception e2) {
+                    e2.printStackTrace();
                 }
             }
         }
@@ -150,7 +167,6 @@ public class CommonUtil {
     public static String getPredicationResult(double[] infos){
         String prediction_r = "";
         double[] result = {0,0,0,0};
-
         result[3] = infos[14];
         if (infos[6]>=2 ){
             result[0]=1;
@@ -162,14 +178,15 @@ public class CommonUtil {
             result[2] = 1;
         }
         double re = result[0]*0.1+result[1]*0.1+result[2]*0.15+result[3]*0.65;
-        if(re<0.25)
+        if(re<0.25) {
             prediction_r = "0";
-        else if(re>=0.25&&re<0.5)
+        } else if(re>=0.25&&re<0.5) {
             prediction_r = "1";
-        else if(re>=0.5&&re<0.75)
+        } else if(re>=0.5&&re<0.75) {
             prediction_r = "2";
-        else if(re>=0.75)
+        } else if(re>=0.75) {
             prediction_r = "3";
+        }
         return prediction_r;
     }
 
